@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "timezone-toolkit",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "timezone-toolkit.agishub.com", "custom_domain": true }],
+  "observability": { "enabled": true },
+  "triggers": { "crons": ["* * * * *"] },
+  // Self service-binding: lets the health probe / warmer call our own routes.
+  // (A plain HTTP self-fetch to our custom domain is a same-zone subrequest → 522,
+  // and an in-process app.fetch hangs, so this is the supported way.)
+  "services": [{ "binding": "SELF", "service": "timezone-toolkit" }],
+  "vars": {
+    "X402_PAY_TO": "0xF41DaF0BA8D5f5915d927e005b2EB2dEd7b6feCF",
+    "X402_NETWORK": "base",
+    "X402_PRICE": "$0.02",
+    "X402_FACILITATOR_URL": ""
+  },
+  "analytics_engine_datasets": [{ "binding": "AE", "dataset": "tzk_calls" }],
+  "durable_objects": {
+    "bindings": [{ "name": "MCP_OBJECT", "class_name": "TimezoneToolkitMCP" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["TimezoneToolkitMCP"] }]
+}

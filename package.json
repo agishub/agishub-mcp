@@ -1,0 +1,70 @@
+{
+  "name": "@agishub/timezone-toolkit",
+  "version": "2.1.0",
+  "mcpName": "com.agishub/timezone-toolkit",
+  "description": "Timezone converter, world clock, date math & meeting scheduler MCP server for AI agents — free, no API key, IANA/DST-accurate.",
+  "keywords": [
+    "timezone",
+    "mcp",
+    "model context protocol",
+    "world clock",
+    "date math",
+    "meeting scheduler",
+    "dst",
+    "iana",
+    "timezone converter",
+    "ai agents"
+  ],
+  "license": "MIT",
+  "author": "AgisHub (agishub.com)",
+  "type": "module",
+  "bin": {
+    "timezone-toolkit": "dist/stdio.js"
+  },
+  "main": "dist/stdio.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agishub/agishub.git"
+  },
+  "homepage": "https://github.com/agishub/agishub#readme",
+  "bugs": {
+    "url": "https://github.com/agishub/agishub/issues"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "esbuild src/stdio.ts --bundle --platform=node --format=esm --target=node18 --outfile=dist/stdio.js --banner:js='#!/usr/bin/env node' && chmod +x dist/stdio.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepublishOnly": "npm run build",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@coinbase/x402": "^2.1.0",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@x402/core": "^2.18.0",
+    "@x402/evm": "^2.18.0",
+    "@x402/fetch": "^2.18.0",
+    "@x402/hono": "^2.18.0",
+    "agents": "^0.0.80",
+    "chrono-node": "^2.7.7",
+    "countries-and-timezones": "^3.7.2",
+    "hono": "^4.12.29",
+    "node-html-parser": "^7.1.0",
+    "viem": "^2.55.0",
+    "x402-hono": "^1.2.0",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260708.1",
+    "esbuild": "^0.24.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.0.0",
+    "x402-fetch": "^1.2.0"
+  }
+}

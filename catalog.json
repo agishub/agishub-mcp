@@ -1,0 +1,38 @@
+{
+  "name": "agishub",
+  "description": "Pay-per-call tools for AI agents over x402 micropayments on Base (USDC).",
+  "website": "https://agishub.com",
+  "network": "eip155:8453",
+  "asset": { "symbol": "USDC", "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "decimals": 6 },
+  "services": [
+    {
+      "service": "timezone",
+      "title": "timezone-toolkit",
+      "description": "World clock, timezone conversion, date math & meeting scheduling for AI agents.",
+      "mcp": "https://timezone-toolkit.agishub.com/mcp",
+      "http_base": "https://timezone-toolkit.agishub.com/v1",
+      "openapi": "https://timezone-toolkit.agishub.com/openapi.json",
+      "tools": [
+        { "name": "now_in", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/now-in", "description": "Current local time in an IANA timezone (offset, abbreviation, DST)." },
+        { "name": "convert_timezone", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/convert-timezone", "description": "Convert a datetime between two IANA zones (ISO or natural language)." },
+        { "name": "convert_batch", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/convert-batch", "description": "Convert one instant into many timezones at once (world clock)." },
+        { "name": "tz_offset", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/tz-offset", "description": "Exact UTC offset of a zone at a given instant (DST-aware)." },
+        { "name": "lookup_timezone", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/lookup-timezone", "description": "Resolve a city or country to its IANA timezone(s)." },
+        { "name": "date_math", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/date-math", "description": "Add/subtract time respecting DST, or diff two datetimes across zones." },
+        { "name": "find_meeting_slots", "channels": ["mcp", "http"], "price_usdc": "0.02", "path": "/v1/find-meeting-slots", "description": "Overlapping working-hour slots across timezones (excludes weekends & holidays). Free tier: 1 slot." },
+        { "name": "is_holiday", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/is-holiday", "description": "Check if a date is a public holiday in a country (Nager.Date)." },
+        { "name": "list_timezones", "channels": ["mcp"], "price_usdc": "0", "description": "List or search valid IANA timezone names." }
+      ]
+    },
+    {
+      "service": "agis-scraper",
+      "title": "Agis Scraper",
+      "description": "Read any public web page as clean markdown. Optional JS rendering for SPAs.",
+      "http_base": "https://timezone-toolkit.agishub.com/v1",
+      "openapi": "https://timezone-toolkit.agishub.com/openapi.json",
+      "tools": [
+        { "name": "extract", "channels": ["http"], "price_usdc": "0.004", "path": "/v1/extract", "description": "Fetch any public URL and return its main content as clean markdown. Optional render:true for JS-heavy pages / SPAs." }
+      ]
+    }
+  ]
+}

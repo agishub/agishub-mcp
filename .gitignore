@@ -1,0 +1,11 @@
+node_modules/
+.wrangler/
+.dev.vars
+dist/
+*.log
+.DS_Store
+.mcpregistry_*
+worker-configuration.d.ts
+
+# back-office privado (no publicar): copia local de respaldo
+src/private/backoffice.local.ts
