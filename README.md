@@ -12,7 +12,7 @@ pays a few tenths of a cent per call from its own wallet; no accounts, no monthl
 ![MCP](https://img.shields.io/badge/MCP-remote%20server-000000)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[Website](https://agishub.com) · [Live API](https://timezone-toolkit.agishub.com) · [x402 client](https://github.com/agishub/agishub-x402-client)
+[Website](https://agishub.com) · [Live API](https://timezone-toolkit.agishub.com) · [OpenAPI](https://timezone-toolkit.agishub.com/openapi.json)
 
 </div>
 
@@ -116,7 +116,6 @@ of a cent and paid by the facilitator.
 
 - **[agishub.com](https://agishub.com)** — the storefront.
 - **Live API** — [timezone-toolkit.agishub.com](https://timezone-toolkit.agishub.com) — the MCP + x402 endpoints served by this repo's Worker.
-- **[agishub-x402-client](https://github.com/agishub/agishub-x402-client)** — self‑custody x402 client (`paidFetch` + local wallet + CLI).
 
 ## License
 
