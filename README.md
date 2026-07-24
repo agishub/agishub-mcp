@@ -112,11 +112,6 @@ Per‑call, in USDC on Base — no subscription. Roughly: **$1 ≈ 1,000 timezon
 web extractions**, or **50 full meeting‑slot searches**. Settlement fees on Base are a fraction
 of a cent and paid by the facilitator.
 
-## Ecosystem
-
-- **[agishub.com](https://agishub.com)** — the storefront.
-- **Live API** — [timezone-toolkit.agishub.com](https://timezone-toolkit.agishub.com) — the MCP + x402 endpoints served by this repo's Worker.
-
 ## License
 
 MIT © AgisHub
