@@ -70,7 +70,7 @@ via **HTTP x402**.
 | `is_holiday` | Is a date a public holiday in a country (ISO 3166‑1)? Data from Nager.Date. | MCP · HTTP | $0.001 |
 | `list_timezones` | List or search valid IANA timezone names. | MCP | free |
 
-### 🕸️ Agis Scraper — read any web page as clean markdown
+### 🕸️ Agis Web Scraper — read any web page as clean markdown
 
 | Tool | What it does | Channels | Cost (x402) |
 |------|--------------|:--------:|:-----------:|

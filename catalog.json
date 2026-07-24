@@ -26,7 +26,7 @@
     },
     {
       "service": "agis-scraper",
-      "title": "Agis Scraper",
+      "title": "Agis Web Scraper",
       "description": "Read any public web page as clean markdown. Optional JS rendering for SPAs.",
       "http_base": "https://timezone-toolkit.agishub.com/v1",
       "openapi": "https://timezone-toolkit.agishub.com/openapi.json",
