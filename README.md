@@ -92,7 +92,7 @@ claude mcp add --transport http timezone https://timezone-toolkit.agishub.com/mc
 
 ```bash
 # Unpaid → 402 challenge; an x402-aware client signs & retries automatically.
-curl -X POST https://timezone-toolkit.agishub.com/v1/extract \
+curl -X POST https://timezone-toolkit.agishub.com/v1/web-scraper \
   -H 'content-type: application/json' \
   -d '{"url":"https://example.com","render":true}'
 ```

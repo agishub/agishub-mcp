@@ -109,7 +109,7 @@ export const catalog: Catalog = {
       channels: ["http"],
       pricing: { x402: "$0.004" },
       visibility: "public",
-      httpPath: "extract",
+      httpPath: "web-scraper",
       tags: ["web", "scrape", "markdown", "rag", "reader"],
       description:
         "Agis Web Scraper — Fetch any public web page and return its main content as clean markdown (title, description, headings, links, lists). Optional JavaScript rendering (render:true) for SPAs / JS-heavy pages. Ideal for RAG and agents that need to read a URL. Paid-only (x402, USDC on Base).",
