@@ -1,8 +1,8 @@
 {
-  "name": "@agishub/timezone-toolkit",
+  "name": "@agishub/mcp",
   "version": "2.1.0",
-  "mcpName": "com.agishub/timezone-toolkit",
-  "description": "Timezone converter, world clock, date math & meeting scheduler MCP server for AI agents — free, no API key, IANA/DST-accurate.",
+  "mcpName": "com.agishub/mcp",
+  "description": "AgisHub MCP — pay-per-call tools for AI agents (x402, USDC on Base). Timezone, world clock, date math & scheduling; free via MCP, paid via HTTP. No API key.",
   "keywords": [
     "timezone",
     "mcp",
@@ -19,7 +19,7 @@
   "author": "AgisHub (agishub.com)",
   "type": "module",
   "bin": {
-    "timezone-toolkit": "dist/stdio.js"
+    "agishub-mcp": "dist/stdio.js"
   },
   "main": "dist/stdio.js",
   "files": [

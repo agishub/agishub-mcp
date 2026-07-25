@@ -4,7 +4,10 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-03-10",
   "compatibility_flags": ["nodejs_compat"],
-  "routes": [{ "pattern": "timezone-toolkit.agishub.com", "custom_domain": true }],
+  "routes": [
+    { "pattern": "api.agishub.com", "custom_domain": true },
+    { "pattern": "timezone-toolkit.agishub.com", "custom_domain": true }
+  ],
   "observability": { "enabled": true },
   "triggers": { "crons": ["* * * * *"] },
   // Self service-binding: lets the health probe / warmer call our own routes.

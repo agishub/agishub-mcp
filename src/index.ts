@@ -38,7 +38,7 @@ app.use(x402Middleware);
 mountHttp(app);
 
 // Custom domain of the deployed Worker (used by the cron warmer and back-office).
-const BASE_URL = "https://timezone-toolkit.agishub.com";
+const BASE_URL = "https://api.agishub.com";
 
 const LANDING = `timezone-toolkit — remote MCP server + x402 paid API
 
