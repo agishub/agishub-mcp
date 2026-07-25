@@ -31,7 +31,7 @@
       "http_base": "https://timezone-toolkit.agishub.com/v1",
       "openapi": "https://timezone-toolkit.agishub.com/openapi.json",
       "tools": [
-        { "name": "extract", "channels": ["http"], "price_usdc": "0.004", "path": "/v1/extract", "description": "Fetch any public URL and return its main content as clean markdown. Optional render:true for JS-heavy pages / SPAs." }
+        { "name": "extract", "channels": ["http"], "price_usdc": "0.004", "path": "/v1/web-scraper", "description": "Fetch any public URL and return its main content as clean markdown. Optional render:true for JS-heavy pages / SPAs." }
       ]
     }
   ]
