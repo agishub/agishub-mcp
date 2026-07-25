@@ -12,7 +12,7 @@ pays a few tenths of a cent per call from its own wallet; no accounts, no monthl
 ![MCP](https://img.shields.io/badge/MCP-remote%20server-000000)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[Website](https://agishub.com) · [Live API](https://timezone-toolkit.agishub.com) · [OpenAPI](https://timezone-toolkit.agishub.com/openapi.json)
+[Website](https://agishub.com) · [Live API](https://api.agishub.com) · [OpenAPI](https://api.agishub.com/openapi.json)
 
 </div>
 
@@ -44,9 +44,9 @@ priced per request in USDC.
   signs a USDC payment (EIP‑3009 on Base) and retries. USDC contract `0x8335…2913`.
 
 ```
-MCP (free):   https://timezone-toolkit.agishub.com/mcp
-HTTP (paid):  POST https://timezone-toolkit.agishub.com/v1/<tool>
-Discovery:    https://timezone-toolkit.agishub.com/openapi.json
+MCP (free):   https://api.agishub.com/mcp
+HTTP (paid):  POST https://api.agishub.com/v1/<tool>
+Discovery:    https://api.agishub.com/openapi.json
 ```
 
 ---
@@ -85,14 +85,14 @@ via **HTTP x402**.
 **Use the free MCP tools** (Claude Code example):
 
 ```bash
-claude mcp add --transport http timezone https://timezone-toolkit.agishub.com/mcp
+claude mcp add --transport http timezone https://api.agishub.com/mcp
 ```
 
 **Pay per call over HTTP x402** (any x402 client / wallet):
 
 ```bash
 # Unpaid → 402 challenge; an x402-aware client signs & retries automatically.
-curl -X POST https://timezone-toolkit.agishub.com/v1/web-scraper \
+curl -X POST https://api.agishub.com/v1/web-scraper \
   -H 'content-type: application/json' \
   -d '{"url":"https://example.com","render":true}'
 ```

@@ -35,7 +35,7 @@ const MAX_BYTES = 2_000_000; // 2 MB response cap
 const FETCH_TIMEOUT_MS = 12_000;
 const RENDER_TIMEOUT_MS = 25_000;
 const UA =
-  "Mozilla/5.0 (compatible; timezone-toolkit-webextract/1.0; +https://timezone-toolkit.agishub.com)";
+  "Mozilla/5.0 (compatible; timezone-toolkit-webextract/1.0; +https://api.agishub.com)";
 
 const NOISE_TAGS = [
   "script", "style", "noscript", "svg", "iframe", "form", "nav", "header",

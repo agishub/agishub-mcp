@@ -49,7 +49,7 @@ export function registerTools(server: McpServer, env?: Env): void {
             free_tier: true,
             upgrade: {
               message: "Free tier returns at most 1 slot. Get ALL matching slots (no cap) via the paid endpoint.",
-              endpoint: "https://timezone-toolkit.agishub.com/paid/find-meeting-slots",
+              endpoint: "https://api.agishub.com/paid/find-meeting-slots",
               method: "POST",
               price: "$0.02 USDC (Base, x402 pay-per-call)",
             },

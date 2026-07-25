@@ -9,9 +9,9 @@
       "service": "timezone",
       "title": "timezone-toolkit",
       "description": "World clock, timezone conversion, date math & meeting scheduling for AI agents.",
-      "mcp": "https://timezone-toolkit.agishub.com/mcp",
-      "http_base": "https://timezone-toolkit.agishub.com/v1",
-      "openapi": "https://timezone-toolkit.agishub.com/openapi.json",
+      "mcp": "https://api.agishub.com/mcp",
+      "http_base": "https://api.agishub.com/v1",
+      "openapi": "https://api.agishub.com/openapi.json",
       "tools": [
         { "name": "now_in", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/now-in", "description": "Current local time in an IANA timezone (offset, abbreviation, DST)." },
         { "name": "convert_timezone", "channels": ["mcp", "http"], "price_usdc": "0.001", "path": "/v1/convert-timezone", "description": "Convert a datetime between two IANA zones (ISO or natural language)." },
@@ -28,8 +28,8 @@
       "service": "agis-scraper",
       "title": "Agis Web Scraper",
       "description": "Read any public web page as clean markdown. Optional JS rendering for SPAs.",
-      "http_base": "https://timezone-toolkit.agishub.com/v1",
-      "openapi": "https://timezone-toolkit.agishub.com/openapi.json",
+      "http_base": "https://api.agishub.com/v1",
+      "openapi": "https://api.agishub.com/openapi.json",
       "tools": [
         { "name": "extract", "channels": ["http"], "price_usdc": "0.004", "path": "/v1/web-scraper", "description": "Fetch any public URL and return its main content as clean markdown. Optional render:true for JS-heavy pages / SPAs." }
       ]

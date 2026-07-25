@@ -82,7 +82,7 @@ export function openapi() {
         "Timezone converter, world clock, date math & meeting scheduler for AI agents. Pay-per-call x402 endpoints (USDC on Base).",
       contact: { name: "AgisHub", url: "https://github.com/agishub/agishub", email: "jmavid@gmail.com" },
     },
-    servers: [{ url: "https://timezone-toolkit.agishub.com" }],
+    servers: [{ url: "https://api.agishub.com" }],
     paths,
   };
 }
