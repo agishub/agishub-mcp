@@ -17,6 +17,7 @@
   ],
   "license": "MIT",
   "author": "AgisHub (agishub.com)",
+  "publishConfig": { "access": "public" },
   "type": "module",
   "bin": {
     "agishub-mcp": "dist/stdio.js"
