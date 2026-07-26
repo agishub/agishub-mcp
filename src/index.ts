@@ -49,7 +49,7 @@ MCP:   POST /mcp   (free, 9 tools)   ·   GET /sse (legacy)
 Paid:  ${httpOperations()
   .map((e) => `${(e.catalog.pricing?.x402 ?? "").padEnd(7)} POST /paid/${e.seg}`)
   .join("\n       ")}
-Docs:  https://github.com/agishub/agishub  ·  /openapi.json
+Docs:  https://github.com/agishub/agishub-mcp  ·  /openapi.json
 `;
 app.get("/", (c) => c.text(LANDING));
 app.get("/health", (c) => c.text(LANDING));
@@ -58,7 +58,7 @@ app.get("/openapi.json", (c) => c.json(openapi()));
 app.get("/.well-known/openapi.json", (c) => c.json(openapi()));
 
 app.get("/favicon.ico", async () => {
-  const r = await fetch("https://raw.githubusercontent.com/agishub/agishub/main/logo.png");
+  const r = await fetch("https://raw.githubusercontent.com/agishub/agishub-mcp/main/logo.png");
   return new Response(r.body, { headers: { "content-type": "image/png", "cache-control": "public, max-age=86400" } });
 });
 

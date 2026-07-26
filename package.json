@@ -28,11 +28,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/agishub/agishub.git"
+    "url": "git+https://github.com/agishub/agishub-mcp.git"
   },
-  "homepage": "https://github.com/agishub/agishub#readme",
+  "homepage": "https://github.com/agishub/agishub-mcp#readme",
   "bugs": {
-    "url": "https://github.com/agishub/agishub/issues"
+    "url": "https://github.com/agishub/agishub-mcp/issues"
   },
   "scripts": {
     "dev": "wrangler dev",
