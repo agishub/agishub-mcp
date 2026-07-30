@@ -21,7 +21,7 @@ async function embed(ctx: OperationContext<unknown>, text: string): Promise<numb
 
 function requireVectorize(env: Env | undefined): asserts env is Env {
   if (!env?.VECTORIZE || !env?.AI) {
-    throw new Error("RAG is not configured (missing VECTORIZE index or AI binding).");
+    throw new Error("The memory service is temporarily unavailable.");
   }
 }
 

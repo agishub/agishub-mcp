@@ -101,7 +101,7 @@ export const catalog: Catalog = {
       httpPath: "is-holiday",
       tags: ["timezone", "holidays"],
       description:
-        "Check whether a given date is a public holiday in a country (identified by its ISO 3166-1 alpha-2 code), and return the holiday name if so. Backed by the Nager.Date public-holiday dataset.",
+        "Check whether a given date is a public holiday in a country (identified by its ISO 3166-1 alpha-2 code), and return the holiday name if so. Backed by an authoritative public-holiday dataset.",
     },
   },
   web: {
@@ -123,7 +123,7 @@ export const catalog: Catalog = {
       httpPath: "pdf",
       tags: ["pdf", "render", "document", "html-to-pdf"],
       description:
-        "Render a public URL or a raw HTML string into a PDF document, returned base64-encoded. Backed by headless Chromium. Use for invoices, reports, receipts and any HTML-to-PDF need.",
+        "Render a public URL or a raw HTML string into a PDF document, returned base64-encoded. Backed by a headless browser. Use for invoices, reports, receipts and any HTML-to-PDF need.",
     },
     screenshot: {
       channels: ["http"],
@@ -132,7 +132,7 @@ export const catalog: Catalog = {
       httpPath: "screenshot",
       tags: ["screenshot", "render", "image", "png"],
       description:
-        "Capture a PNG screenshot of any public URL — full page or just the viewport, at a chosen size — returned base64-encoded. Backed by headless Chromium.",
+        "Capture a PNG screenshot of any public URL — full page or just the viewport, at a chosen size — returned base64-encoded. Backed by a headless browser.",
     },
   },
   utils: {
@@ -174,7 +174,7 @@ export const catalog: Catalog = {
       httpPath: "summarize",
       tags: ["ai", "summarize", "nlp"],
       description:
-        "Summarize a block of text into a short abstract, with an optional target length. Runs on Cloudflare Workers AI — no external API key.",
+        "Summarize a block of text into a short abstract, with an optional target length. No external API key required.",
     },
     classify: {
       channels: ["mcp", "http"],
@@ -183,7 +183,7 @@ export const catalog: Catalog = {
       httpPath: "classify",
       tags: ["ai", "classify", "nlp"],
       description:
-        "Classify a text into exactly one of the candidate labels you provide (e.g. sentiment, topic, intent). Runs on Cloudflare Workers AI.",
+        "Classify a text into exactly one of the candidate labels you provide (e.g. sentiment, topic, intent).",
     },
     extract_entities: {
       channels: ["mcp", "http"],
@@ -192,16 +192,16 @@ export const catalog: Catalog = {
       httpPath: "extract-entities",
       tags: ["ai", "ner", "nlp"],
       description:
-        "Extract named entities from text — people, organizations, locations, dates and miscellaneous — returned as structured JSON. Runs on Cloudflare Workers AI.",
+        "Extract named entities from text — people, organizations, locations, dates and miscellaneous — returned as structured JSON.",
     },
     transcribe: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.006" },
       visibility: "public",
       httpPath: "transcribe",
-      tags: ["ai", "speech-to-text", "whisper", "audio"],
+      tags: ["ai", "speech-to-text", "audio"],
       description:
-        "Transcribe an audio file (given by public URL) to text using Whisper. Handles mp3, wav, m4a, ogg and more. Runs on Cloudflare Workers AI.",
+        "Transcribe an audio file (given by public URL) to text. Handles mp3, wav, m4a, ogg and more.",
     },
     // ocr: parked — vision models need either a one-time Meta license 'agree'
     // (llama-3.2-vision) or accept llava's slowness; re-enable once resolved.
@@ -212,7 +212,7 @@ export const catalog: Catalog = {
       httpPath: "embed",
       tags: ["ai", "embeddings", "rag", "vector"],
       description:
-        "Turn text into a numeric embedding vector for semantic search, RAG and similarity. Multilingual (BGE-M3). Runs on Cloudflare Workers AI.",
+        "Turn text into a numeric embedding vector for semantic search, RAG and similarity. Multilingual.",
     },
     chat: {
       channels: ["mcp", "http"],
@@ -221,7 +221,7 @@ export const catalog: Catalog = {
       httpPath: "chat",
       tags: ["ai", "chat", "llm"],
       description:
-        "Ask a general-purpose LLM a question or give it an instruction, with an optional system prompt. Runs on Cloudflare Workers AI (Llama 3.3) — no external API key.",
+        "Ask a general-purpose LLM a question or give it an instruction, with an optional system prompt. No external API key required.",
     },
     tts: {
       channels: ["http"],
@@ -230,7 +230,7 @@ export const catalog: Catalog = {
       httpPath: "tts",
       tags: ["ai", "text-to-speech", "audio", "voice"],
       description:
-        "Convert text into spoken audio (returned base64-encoded MP3), in several languages. Runs on Cloudflare Workers AI.",
+        "Convert text into spoken audio (returned base64-encoded MP3), in several languages.",
     },
   },
   rag: {
@@ -241,7 +241,7 @@ export const catalog: Catalog = {
       httpPath: "memory-upsert",
       tags: ["rag", "memory", "vector", "store"],
       description:
-        "Store a piece of text in a persistent, searchable memory collection (namespace). Embedded and indexed on Cloudflare Vectorize for later semantic recall.",
+        "Store a piece of text in a persistent, searchable memory collection (namespace). Embedded and indexed for later semantic recall.",
     },
     memory_search: {
       channels: ["mcp", "http"],
@@ -250,7 +250,7 @@ export const catalog: Catalog = {
       httpPath: "memory-search",
       tags: ["rag", "memory", "vector", "search"],
       description:
-        "Semantically search a memory collection (namespace) and return the most relevant stored entries. The retrieval half of RAG, backed by Cloudflare Vectorize.",
+        "Semantically search a memory collection (namespace) and return the most relevant stored entries. The retrieval half of RAG.",
     },
   },
   webhook: {
@@ -279,7 +279,7 @@ export const catalog: Catalog = {
       pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "browser-automate",
-      tags: ["browser", "automation", "puppeteer", "click", "forms"],
+      tags: ["browser", "automation", "click", "forms"],
       description:
         "Drive a headless browser: open a URL and run an ordered list of steps — click, type, press keys, wait, extract text and screenshot. For flows the plain scraper can't reach (logins, forms, multi-step pages).",
     },
@@ -292,7 +292,7 @@ export const catalog: Catalog = {
       httpPath: "crypto-price",
       tags: ["crypto", "price", "defi", "market-data"],
       description:
-        "Get live USD spot prices for one or more cryptocurrencies by ticker symbol (e.g. BTC, ETH, SOL). Backed by Coinbase.",
+        "Get live USD spot prices for one or more cryptocurrencies by ticker symbol (e.g. BTC, ETH, SOL).",
     },
   },
   image: {
@@ -301,9 +301,9 @@ export const catalog: Catalog = {
       pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "generate-image",
-      tags: ["ai", "image", "text-to-image", "flux"],
+      tags: ["ai", "image", "text-to-image"],
       description:
-        "Generate an image from a text prompt (returned base64-encoded PNG). Backed by FLUX.1 on Cloudflare Workers AI.",
+        "Generate an image from a text prompt (returned base64-encoded PNG).",
     },
   },
   link: {

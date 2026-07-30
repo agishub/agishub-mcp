@@ -35,7 +35,7 @@ export async function summarize(ctx: OperationContext<z.infer<typeof S.summarize
     messages: [{ role: "system", content: system }, { role: "user", content: text }],
     max_tokens: Math.min(target * 3, 1000),
   }, "text")) as { response?: unknown };
-  return { summary: asText(r).trim(), model: LLM };
+  return { summary: asText(r).trim() };
 }
 
 export async function classify(ctx: OperationContext<z.infer<typeof S.classify>>) {
@@ -49,7 +49,7 @@ export async function classify(ctx: OperationContext<z.infer<typeof S.classify>>
   }, "text")) as { response?: unknown };
   const out = asText(r).trim();
   const label = labels.find((l) => out.toLowerCase().includes(l.toLowerCase())) ?? out;
-  return { label, labels, model: LLM };
+  return { label, labels };
 }
 
 export async function extract_entities(ctx: OperationContext<z.infer<typeof S.extractEntities>>) {
@@ -61,21 +61,21 @@ export async function extract_entities(ctx: OperationContext<z.infer<typeof S.ex
     max_tokens: 500,
   }, "text")) as { response?: unknown };
   if (r?.response && typeof r.response === "object") {
-    return { entities: r.response, model: LLM };
+    return { entities: r.response };
   }
   const raw = asText(r).trim();
   try {
     const entities = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
-    return { entities, model: LLM };
+    return { entities };
   } catch {
-    return { raw, note: "Model did not return valid JSON.", model: LLM };
+    return { raw, note: "Model did not return valid JSON." };
   }
 }
 
 export async function transcribe(ctx: OperationContext<z.infer<typeof S.transcribe>>) {
   const audio = await fetchBytes(ctx.input.audio_url);
   const r = (await runAi(ctx, WHISPER, { audio }, "audio")) as { text?: string; word_count?: number };
-  return { text: (r?.text ?? "").trim(), word_count: r?.word_count, model: WHISPER };
+  return { text: (r?.text ?? "").trim(), word_count: r?.word_count };
 }
 
 export async function ocr(ctx: OperationContext<z.infer<typeof S.ocr>>) {
@@ -83,13 +83,13 @@ export async function ocr(ctx: OperationContext<z.infer<typeof S.ocr>>) {
   const prompt = ctx.input.prompt || "Read and transcribe ALL text visible in this image. Preserve tables and layout where possible.";
   const r = (await runAi(ctx, VISION, { image, prompt, max_tokens: 1024 }, "image")) as { description?: string; response?: unknown };
   const text = (typeof r?.description === "string" ? r.description : asText(r as { response?: unknown })).trim();
-  return { text, model: VISION };
+  return { text };
 }
 
 export async function embed(ctx: OperationContext<z.infer<typeof S.embed>>) {
   const r = (await runAi(ctx, EMBED, { text: ctx.input.text }, "embed")) as { data?: number[][]; shape?: number[] };
   const vector = r?.data?.[0] ?? [];
-  return { dimensions: vector.length, embedding: vector, model: EMBED };
+  return { dimensions: vector.length, embedding: vector };
 }
 
 export async function chat(ctx: OperationContext<z.infer<typeof S.chat>>) {
@@ -98,12 +98,12 @@ export async function chat(ctx: OperationContext<z.infer<typeof S.chat>>) {
     ? [{ role: "system", content: system }, { role: "user", content: prompt }]
     : [{ role: "user", content: prompt }];
   const r = (await runAi(ctx, LLM, { messages, max_tokens: max_tokens ?? 512 }, "text")) as { response?: unknown };
-  return { response: asText(r).trim(), model: LLM };
+  return { response: asText(r).trim() };
 }
 
 export async function tts(ctx: OperationContext<z.infer<typeof S.tts>>) {
   const { text, lang } = ctx.input;
   const r = (await runAi(ctx, TTS, { prompt: text, lang: lang ?? "en" }, "audio")) as { audio?: string };
   const base64 = r?.audio ?? "";
-  return { format: "mp3", base64, data_uri: `data:audio/mpeg;base64,${base64}`, model: TTS };
+  return { format: "mp3", base64, data_uri: `data:audio/mpeg;base64,${base64}` };
 }

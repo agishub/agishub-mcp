@@ -1,6 +1,5 @@
 /**
- * Crypto spot prices via Coinbase's public API (no key, reliable from Cloudflare
- * Workers). Priced in USD, by ticker symbol (BTC, ETH, SOL…). Each symbol is
+ * Crypto spot prices in USD, by ticker symbol (BTC, ETH, SOL…). Each symbol is
  * fetched independently so one bad symbol never fails the whole request.
  */
 export async function price(symbols: string) {
@@ -27,5 +26,5 @@ export async function price(symbols: string) {
       }
     }),
   );
-  return { vs_currency: "usd", prices, source: "coinbase", as_of: new Date().toISOString() };
+  return { vs_currency: "usd", prices, as_of: new Date().toISOString() };
 }
