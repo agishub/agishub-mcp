@@ -1,0 +1,7 @@
+import type { ServiceDefinition } from "../types";
+import { operations } from "./operations";
+
+export const webhookService: ServiceDefinition = {
+  name: "webhook",
+  operations,
+};

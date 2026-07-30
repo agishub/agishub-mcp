@@ -11,7 +11,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { httpOperations } from "../resolver";
 import { buildContext } from "../context";
 import { authorize } from "../billing";
-import { recordCall } from "../analytics";
+import { recordCall, clientId } from "../analytics";
 import type { OperationContext } from "../services/types";
 
 function headersOf(c: Context): Record<string, string> {
@@ -40,7 +40,7 @@ export function mountHttp(app: Hono<{ Bindings: Env }>): void {
       ctx.principal = await authorize(ctx);
       // Reaching the handler on a priced route means the x402 gate let it through
       // (unpaid requests get a 402 in the middleware), so this is a paid call.
-      recordCall(c.env, operationId, "http", true);
+      recordCall(c.env, operationId, "http", true, clientId(ctx.headers));
       try {
         return c.json((await operation.handler(ctx)) as Record<string, unknown>);
       } catch (err) {
