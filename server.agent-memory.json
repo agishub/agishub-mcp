@@ -1,0 +1,9 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.agishub/agent-memory",
+  "description": "Persistent semantic memory for AI agents: store and recall text by meaning (RAG, Vectorize). x402",
+  "version": "2.1.1",
+  "repository": { "url": "https://github.com/agishub/agishub-mcp", "source": "github" },
+  "websiteUrl": "https://agishub.com",
+  "remotes": [{ "type": "streamable-http", "url": "https://api.agishub.com/mcp/memory" }]
+}
