@@ -21,8 +21,28 @@
     "X402_FACILITATOR_URL": ""
   },
   "analytics_engine_datasets": [{ "binding": "AE", "dataset": "tzk_calls" }],
-  "durable_objects": {
-    "bindings": [{ "name": "MCP_OBJECT", "class_name": "TimezoneToolkitMCP" }]
+  "ai": { "binding": "AI" },
+  "browser": { "binding": "BROWSER" },
+  "kv_namespaces": [{ "binding": "LINKS", "id": "7c51149b42224e2297ca49db0b22d758" }],
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "agishub-memory" }],
+  "queues": {
+    "producers": [{ "queue": "agishub-webhooks", "binding": "WEBHOOK_QUEUE" }],
+    "consumers": [{ "queue": "agishub-webhooks", "max_retries": 6, "max_batch_size": 10, "max_batch_timeout": 5 }]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["TimezoneToolkitMCP"] }]
+  "durable_objects": {
+    "bindings": [
+      { "name": "MCP_OBJECT", "class_name": "TimezoneToolkitMCP" },
+      { "name": "TIMEZONE_MCP", "class_name": "TimezoneMCP" },
+      { "name": "WEB_MCP", "class_name": "WebScraperMCP" },
+      { "name": "AI_MCP", "class_name": "AiMCP" },
+      { "name": "MEMORY_MCP", "class_name": "MemoryMCP" },
+      { "name": "WEBHOOK_MCP", "class_name": "WebhookMCP" },
+      { "name": "CRYPTO_MCP", "class_name": "CryptoMCP" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["TimezoneToolkitMCP"] },
+    { "tag": "v2", "new_sqlite_classes": ["TimezoneMCP", "WebScraperMCP"] },
+    { "tag": "v3", "new_sqlite_classes": ["AiMCP", "MemoryMCP", "WebhookMCP", "CryptoMCP"] }
+  ]
 }
