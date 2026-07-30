@@ -43,32 +43,39 @@ export const dateMath = z.object({
   timezone: z.string().describe("IANA timezone the base datetime is in."),
   operation: z
     .object({
-      type: z.enum(["add", "diff"]),
-      amount: z.number().optional().describe("For 'add': amount to add (negative subtracts)."),
-      unit: z.enum(UNITS).optional().describe("For 'add': seconds|minutes|hours|days|weeks."),
-      to_datetime: z.string().optional().describe("For 'diff': the other datetime."),
-      to_timezone: z.string().optional().describe("For 'diff': timezone of to_datetime (defaults to timezone)."),
+      type: z.enum(["add", "diff"]).describe("'add' to shift the datetime by a duration, or 'diff' to measure the gap between two datetimes."),
+      amount: z.number().optional().describe("For type 'add': how much to shift. Use a negative number to subtract."),
+      unit: z.enum(UNITS).optional().describe("For type 'add': one of seconds, minutes, hours, days, weeks."),
+      to_datetime: z.string().optional().describe("For type 'diff': the second datetime (ISO 8601 or natural language)."),
+      to_timezone: z.string().optional().describe("For type 'diff': the IANA timezone of to_datetime (defaults to the base timezone)."),
     })
-    .describe("Operation to perform."),
+    .describe("What to compute: { type:'add', amount, unit } to add/subtract a duration, or { type:'diff', to_datetime, to_timezone? } for the difference between two datetimes."),
 });
 
 export const findMeetingSlots = z.object({
   participants: z
     .array(
       z.object({
-        timezone: z.string().describe("Participant IANA timezone."),
+        timezone: z.string().describe("Participant's IANA timezone, e.g. 'Europe/Madrid'."),
         working_hours: z
-          .object({ start: z.string(), end: z.string() })
+          .object({
+            start: z.string().describe('Local start time "HH:mm" (24h), e.g. "09:00".'),
+            end: z.string().describe('Local end time "HH:mm" (24h), e.g. "17:00".'),
+          })
           .optional()
-          .describe('Local working hours, e.g. {"start":"09:00","end":"17:00"}. Defaults 09:00-17:00.'),
-        country: z.string().optional().describe("ISO 3166-1 alpha-2 to skip that person's holidays."),
+          .describe('This participant\'s local working hours. Defaults to 09:00-17:00.'),
+        country: z.string().optional().describe("ISO 3166-1 alpha-2 code (e.g. 'US', 'ES') to exclude that person's public holidays."),
       }),
     )
-    .min(1),
+    .min(1)
+    .describe('The people to meet. Each participant is { timezone (IANA, required), working_hours? { start, end }, country? (ISO alpha-2) }.'),
   duration: z.number().describe("Meeting duration in minutes."),
   date_range: z
-    .object({ start: z.string(), end: z.string() })
-    .describe('Search window, e.g. {"start":"2026-07-13","end":"2026-07-17"}.'),
+    .object({
+      start: z.string().describe('First date to search "YYYY-MM-DD".'),
+      end: z.string().describe('Last date to search "YYYY-MM-DD".'),
+    })
+    .describe('Inclusive date window to search, e.g. { "start":"2026-07-13", "end":"2026-07-17" }.'),
 });
 
 export const isHoliday = z.object({

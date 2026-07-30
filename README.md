@@ -53,10 +53,11 @@ Discovery:    https://api.agishub.com/openapi.json
 
 ## Tools
 
-Prices are per call in USDC on Base. Tools on both channels are **free via MCP** and priced
-via **HTTP x402**.
+**24 tools across 13 services.** Prices are per call in USDC on Base. Tools marked
+**MCP · HTTP** are **free via MCP** and pay‑per‑call via **HTTP x402**; tools marked **HTTP**
+are paid‑only (they touch metered infrastructure, so they run exclusively on the x402 endpoint).
 
-### 🕔 timezone — world clock, date math & scheduling for agents
+### 🕔 Timezone — world clock, date math & scheduling
 
 | Tool | What it does | Channels | Cost (x402) |
 |------|--------------|:--------:|:-----------:|
@@ -70,13 +71,64 @@ via **HTTP x402**.
 | `is_holiday` | Is a date a public holiday in a country (ISO 3166‑1)? Data from Nager.Date. | MCP · HTTP | $0.001 |
 | `list_timezones` | List or search valid IANA timezone names. | MCP | free |
 
-### 🕸️ Agis Web Scraper — read any web page as clean markdown
+### 🕸️ Web — read any web page as clean markdown
 
 | Tool | What it does | Channels | Cost (x402) |
 |------|--------------|:--------:|:-----------:|
-| `extract` | Fetch any public URL and return its main content as clean markdown (title, headings, links, lists). Optional `render:true` runs a headless browser for JS‑heavy pages / SPAs. Built for RAG and agents that need to read the web. | HTTP | **$0.004** |
+| `extract` | Fetch any public URL and return its main content as clean, token‑efficient markdown (title, headings, links, lists). Optional `render:true` runs a headless browser for JS‑heavy pages / SPAs. Built for RAG. | MCP · HTTP | **$0.004** |
 
-> More tools land here as the platform grows — each new service plugs into the same MCP + x402 doors.
+### 🤖 AI — NLP & generation on Workers AI (no external API key)
+
+| Tool | What it does | Channels | Cost (x402) |
+|------|--------------|:--------:|:-----------:|
+| `summarize` | Summarize a block of text into a short abstract, with an optional target length. | MCP · HTTP | $0.003 |
+| `classify` | Classify a text into exactly one of the candidate labels you provide. | MCP · HTTP | $0.002 |
+| `extract_entities` | Extract named entities (people, orgs, locations, dates) as structured JSON. | MCP · HTTP | $0.003 |
+| `embed` | Turn text into a multilingual embedding vector (BGE‑M3) for semantic search / RAG. | MCP · HTTP | $0.001 |
+| `chat` | Ask a general‑purpose LLM a question, with an optional system prompt. | MCP · HTTP | $0.003 |
+| `transcribe` | Transcribe an audio file (by public URL) to text with Whisper. | MCP · HTTP | $0.006 |
+| `tts` | Convert text into spoken audio (base64 MP3), in several languages. | HTTP | $0.005 |
+
+### 🧠 Memory / RAG — persistent semantic memory on Vectorize
+
+| Tool | What it does | Channels | Cost (x402) |
+|------|--------------|:--------:|:-----------:|
+| `memory_upsert` | Store text in a persistent, searchable collection (namespace); embedded & indexed. | MCP · HTTP | $0.001 |
+| `memory_search` | Semantically search a namespace and return the most relevant stored entries. | MCP · HTTP | $0.001 |
+
+### 📤 Webhooks — guaranteed, retried delivery
+
+| Tool | What it does | Channels | Cost (x402) |
+|------|--------------|:--------:|:-----------:|
+| `relay` | Deliver a webhook (POST/PUT/PATCH) with background retries. Returns a `job_id` at once. | MCP · HTTP | $0.002 |
+| `status` | Check a webhook job's delivery status (queued / retrying / delivered / failed). | MCP · HTTP | $0.001 |
+
+### 💱 Finance & crypto — live rates and prices
+
+| Tool | What it does | Channels | Cost (x402) |
+|------|--------------|:--------:|:-----------:|
+| `convert_currency` | Convert an amount between currencies using live daily FX rates (ISO 4217). | MCP · HTTP | $0.001 |
+| `price` | Live USD spot prices for cryptocurrencies by ticker (BTC, ETH, SOL). Via Coinbase. | MCP · HTTP | $0.001 |
+
+### 🔧 Utilities & links
+
+| Tool | What it does | Channels | Cost (x402) |
+|------|--------------|:--------:|:-----------:|
+| `qr_code` | Generate a QR code (inline SVG + data URI) for any text or URL. | MCP · HTTP | $0.001 |
+| `convert_units` | Convert between units of one category (length, mass, volume, speed, area, storage, time, temperature). | MCP · HTTP | $0.001 |
+| `shorten` | Shorten a long URL into a compact `api.agishub.com/s/<code>` redirect link. | MCP · HTTP | $0.001 |
+
+### 🖼️ Render & browser — documents, images, automation (paid‑only)
+
+| Tool | What it does | Channels | Cost (x402) |
+|------|--------------|:--------:|:-----------:|
+| `pdf` | Render a public URL or raw HTML into a PDF (base64). Headless Chromium. | HTTP | $0.008 |
+| `screenshot` | Capture a PNG screenshot of any public URL (full page or viewport). | HTTP | $0.006 |
+| `generate` (image) | Generate an image from a text prompt (base64 PNG). Backed by FLUX.1. | HTTP | $0.01 |
+| `automate` (browser) | Drive a headless browser through steps — click, type, wait, extract, screenshot — for logins, forms and multi‑step flows. | HTTP | $0.01 |
+
+> New services plug into the same MCP + x402 doors and appear automatically in
+> [`/openapi.json`](https://api.agishub.com/openapi.json).
 
 ---
 

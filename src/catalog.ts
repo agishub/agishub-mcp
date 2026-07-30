@@ -31,7 +31,7 @@ export const catalog: Catalog = {
       httpPath: "now-in",
       tags: ["timezone", "clock"],
       description:
-        "Current local time in an IANA timezone, with UTC offset, abbreviation and DST flag. Use whenever you need to know 'now'.",
+        "Get the current local time in an IANA timezone, including the UTC offset, zone abbreviation and whether DST is in effect. Use whenever you need to know what time it is 'now' somewhere.",
     },
     convert_timezone: {
       channels: ["mcp", "http"],
@@ -40,7 +40,7 @@ export const catalog: Catalog = {
       httpPath: "convert-timezone",
       tags: ["timezone", "convert"],
       description:
-        "Convert a date/time from one IANA timezone to another. Accepts ISO 8601 or natural language ('next Tuesday 3pm'). Returns converted datetime, offset, abbreviation and DST flag.",
+        "Convert a specific date/time from one IANA timezone to another. Accepts ISO 8601 or natural language ('next Tuesday 3pm'). Returns the converted datetime with its UTC offset, zone abbreviation and DST flag.",
     },
     convert_batch: {
       channels: ["mcp", "http"],
@@ -49,7 +49,7 @@ export const catalog: Catalog = {
       httpPath: "convert-batch",
       tags: ["timezone", "world-clock"],
       description:
-        "Like convert_timezone but converts a single instant into many target timezones at once. Ideal for world-clock views.",
+        "Convert a single instant into many IANA timezones at once — a world-clock view. Like convert_timezone, but 'to' is a list of target zones.",
     },
     tz_offset: {
       channels: ["mcp", "http"],
@@ -58,14 +58,14 @@ export const catalog: Catalog = {
       httpPath: "tz-offset",
       tags: ["timezone", "offset"],
       description:
-        "Exact UTC offset of a timezone at a given instant (DST-aware). Handles fractional offsets like India +05:30 and Nepal +05:45.",
+        "Get the exact UTC offset of an IANA timezone at a given instant, DST-aware. Correctly handles fractional offsets such as India +05:30 and Nepal +05:45.",
     },
     list_timezones: {
       channels: ["mcp"],
       visibility: "public",
       tags: ["timezone", "list"],
       description:
-        "List or search valid IANA timezone names. Filter by city, region or country substring (e.g. 'kolkata', 'america').",
+        "List or search valid IANA timezone identifiers, optionally filtered by a city, region or country substring (e.g. 'kolkata', 'america'). Use it to discover the exact identifier to pass to the other tools.",
     },
     lookup_timezone: {
       channels: ["mcp", "http"],
@@ -74,7 +74,7 @@ export const catalog: Catalog = {
       httpPath: "lookup-timezone",
       tags: ["timezone", "lookup"],
       description:
-        "Resolve a city or country name to its IANA timezone(s), so you don't need the exact identifier. E.g. 'Delhi' -> Asia/Kolkata.",
+        "Resolve a city or country name to its IANA timezone(s) so you don't need the exact identifier — e.g. 'Delhi' -> 'Asia/Kolkata'. Use it first when you only have a place name.",
     },
     date_math: {
       channels: ["mcp", "http"],
@@ -83,7 +83,7 @@ export const catalog: Catalog = {
       httpPath: "date-math",
       tags: ["timezone", "date-math"],
       description:
-        "Add/subtract time to a date respecting DST (days are calendar-based, hours/minutes are absolute), or compute the difference between two datetimes in different zones.",
+        "Timezone-aware date arithmetic: add or subtract a duration to a datetime (days are calendar-based and DST-safe; hours and minutes are absolute), or compute the difference between two datetimes that may be in different zones.",
     },
     find_meeting_slots: {
       channels: ["mcp", "http"],
@@ -92,7 +92,7 @@ export const catalog: Catalog = {
       httpPath: "find-meeting-slots",
       tags: ["timezone", "scheduler"],
       description:
-        "Suggest overlapping working-hour slots for a meeting across timezones (excludes weekends and, if a country code is given per participant, public holidays). FREE TIER: returns at most 1 slot; get ALL matching slots via the paid endpoint (see 'upgrade' in the response).",
+        "Find working-hour time slots that overlap across participants in different timezones for a meeting of a given duration, excluding weekends and (when a country is given per participant) that person's public holidays. Free tier returns at most 1 slot; the paid endpoint returns every matching slot (see 'upgrade' in the response).",
     },
     is_holiday: {
       channels: ["mcp", "http"],
@@ -101,18 +101,220 @@ export const catalog: Catalog = {
       httpPath: "is-holiday",
       tags: ["timezone", "holidays"],
       description:
-        "Check whether a date is a public holiday in a country (ISO 3166-1 alpha-2). Data from the free Nager.Date service.",
+        "Check whether a given date is a public holiday in a country (identified by its ISO 3166-1 alpha-2 code), and return the holiday name if so. Backed by the Nager.Date public-holiday dataset.",
     },
   },
   web: {
     extract: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.004" },
       visibility: "public",
       httpPath: "web-scraper",
       tags: ["web", "scrape", "markdown", "rag", "reader"],
       description:
-        "Agis Web Scraper — Fetch any public web page and return its main content as clean markdown (title, description, headings, links, lists). Optional JavaScript rendering (render:true) for SPAs / JS-heavy pages. Ideal for RAG and agents that need to read a URL. Paid-only (x402, USDC on Base).",
+        "Fetch any public web page and return its main content as clean, token-efficient Markdown (title, description, headings, links, lists). Set render:true to execute JavaScript first for single-page apps or JS-heavy pages that would otherwise come back empty. Built for RAG and for agents that need to read the contents of a URL.",
+    },
+  },
+  render: {
+    pdf: {
+      channels: ["http"],
+      pricing: { x402: "$0.008" },
+      visibility: "public",
+      httpPath: "pdf",
+      tags: ["pdf", "render", "document", "html-to-pdf"],
+      description:
+        "Render a public URL or a raw HTML string into a PDF document, returned base64-encoded. Backed by headless Chromium. Use for invoices, reports, receipts and any HTML-to-PDF need.",
+    },
+    screenshot: {
+      channels: ["http"],
+      pricing: { x402: "$0.006" },
+      visibility: "public",
+      httpPath: "screenshot",
+      tags: ["screenshot", "render", "image", "png"],
+      description:
+        "Capture a PNG screenshot of any public URL — full page or just the viewport, at a chosen size — returned base64-encoded. Backed by headless Chromium.",
+    },
+  },
+  utils: {
+    qr_code: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "qr-code",
+      tags: ["qr", "generator", "image", "svg"],
+      description:
+        "Generate a QR code for any text or URL. Returns an inline SVG plus a data URI, with selectable size, quiet-zone margin and error-correction level.",
+    },
+    convert_units: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "convert-units",
+      tags: ["convert", "units", "math"],
+      description:
+        "Convert a value between units of the same category: length, mass, volume, speed, area, digital storage, time, and temperature (Celsius/Fahrenheit/Kelvin).",
+    },
+  },
+  finance: {
+    convert_currency: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "convert-currency",
+      tags: ["currency", "fx", "convert", "money"],
+      description:
+        "Convert an amount between currencies using live daily exchange rates (ISO 4217 codes, e.g. USD, EUR, GBP, JPY). Returns the converted amount and the rate used.",
+    },
+  },
+  ai: {
+    summarize: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.003" },
+      visibility: "public",
+      httpPath: "summarize",
+      tags: ["ai", "summarize", "nlp"],
+      description:
+        "Summarize a block of text into a short abstract, with an optional target length. Runs on Cloudflare Workers AI — no external API key.",
+    },
+    classify: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.002" },
+      visibility: "public",
+      httpPath: "classify",
+      tags: ["ai", "classify", "nlp"],
+      description:
+        "Classify a text into exactly one of the candidate labels you provide (e.g. sentiment, topic, intent). Runs on Cloudflare Workers AI.",
+    },
+    extract_entities: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.003" },
+      visibility: "public",
+      httpPath: "extract-entities",
+      tags: ["ai", "ner", "nlp"],
+      description:
+        "Extract named entities from text — people, organizations, locations, dates and miscellaneous — returned as structured JSON. Runs on Cloudflare Workers AI.",
+    },
+    transcribe: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.006" },
+      visibility: "public",
+      httpPath: "transcribe",
+      tags: ["ai", "speech-to-text", "whisper", "audio"],
+      description:
+        "Transcribe an audio file (given by public URL) to text using Whisper. Handles mp3, wav, m4a, ogg and more. Runs on Cloudflare Workers AI.",
+    },
+    // ocr: parked — vision models need either a one-time Meta license 'agree'
+    // (llama-3.2-vision) or accept llava's slowness; re-enable once resolved.
+    embed: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "embed",
+      tags: ["ai", "embeddings", "rag", "vector"],
+      description:
+        "Turn text into a numeric embedding vector for semantic search, RAG and similarity. Multilingual (BGE-M3). Runs on Cloudflare Workers AI.",
+    },
+    chat: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.003" },
+      visibility: "public",
+      httpPath: "chat",
+      tags: ["ai", "chat", "llm"],
+      description:
+        "Ask a general-purpose LLM a question or give it an instruction, with an optional system prompt. Runs on Cloudflare Workers AI (Llama 3.3) — no external API key.",
+    },
+    tts: {
+      channels: ["http"],
+      pricing: { x402: "$0.005" },
+      visibility: "public",
+      httpPath: "tts",
+      tags: ["ai", "text-to-speech", "audio", "voice"],
+      description:
+        "Convert text into spoken audio (returned base64-encoded MP3), in several languages. Runs on Cloudflare Workers AI.",
+    },
+  },
+  rag: {
+    memory_upsert: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "memory-upsert",
+      tags: ["rag", "memory", "vector", "store"],
+      description:
+        "Store a piece of text in a persistent, searchable memory collection (namespace). Embedded and indexed on Cloudflare Vectorize for later semantic recall.",
+    },
+    memory_search: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "memory-search",
+      tags: ["rag", "memory", "vector", "search"],
+      description:
+        "Semantically search a memory collection (namespace) and return the most relevant stored entries. The retrieval half of RAG, backed by Cloudflare Vectorize.",
+    },
+  },
+  webhook: {
+    relay: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.002" },
+      visibility: "public",
+      httpPath: "webhook-relay",
+      tags: ["webhook", "delivery", "queue", "retry"],
+      description:
+        "Deliver a webhook (POST/PUT/PATCH a JSON payload to a URL) with guaranteed, retried delivery. Returns immediately with a job_id; AgisHub keeps retrying in the background until it succeeds.",
+    },
+    status: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "webhook-status",
+      tags: ["webhook", "status"],
+      description:
+        "Check the delivery status of a webhook job (queued / retrying / delivered / failed) by its job_id.",
+    },
+  },
+  browser: {
+    automate: {
+      channels: ["http"],
+      pricing: { x402: "$0.01" },
+      visibility: "public",
+      httpPath: "browser-automate",
+      tags: ["browser", "automation", "puppeteer", "click", "forms"],
+      description:
+        "Drive a headless browser: open a URL and run an ordered list of steps — click, type, press keys, wait, extract text and screenshot. For flows the plain scraper can't reach (logins, forms, multi-step pages).",
+    },
+  },
+  crypto: {
+    price: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "crypto-price",
+      tags: ["crypto", "price", "defi", "market-data"],
+      description:
+        "Get live USD spot prices for one or more cryptocurrencies by ticker symbol (e.g. BTC, ETH, SOL). Backed by Coinbase.",
+    },
+  },
+  image: {
+    generate: {
+      channels: ["http"],
+      pricing: { x402: "$0.01" },
+      visibility: "public",
+      httpPath: "generate-image",
+      tags: ["ai", "image", "text-to-image", "flux"],
+      description:
+        "Generate an image from a text prompt (returned base64-encoded PNG). Backed by FLUX.1 on Cloudflare Workers AI.",
+    },
+  },
+  link: {
+    shorten: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "shorten",
+      tags: ["url", "shortener", "link"],
+      description:
+        "Shorten a long URL into a compact api.agishub.com/s/<code> link that redirects to the original. Codes are stored for a year.",
     },
   },
 };

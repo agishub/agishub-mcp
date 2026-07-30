@@ -26,8 +26,16 @@ const fail = (err: unknown): ToolResult => ({
 
 const FIND_SLOTS = "timezone.find_meeting_slots";
 
-export function registerTools(server: McpServer, env?: Env): void {
-  for (const { name, operationId, operation, catalog } of mcpOperations()) {
+/**
+ * Registers MCP tools on `server`. Pass `services` to expose only a subset (e.g.
+ * ["timezone"]) so a focused endpoint advertises just its own toolset; omit it to
+ * expose every mcp-channel operation (the combined hub).
+ */
+export function registerTools(server: McpServer, env?: Env, services?: string[]): void {
+  const ops = mcpOperations().filter(
+    (o) => !services || services.includes(o.operationId.split(".")[0]),
+  );
+  for (const { name, operationId, operation, catalog } of ops) {
     server.tool(name, catalog.description, operation.schema.shape, async (args: unknown) => {
       try {
         const ctx = buildContext("mcp", {}, args, env) as OperationContext<any>;
