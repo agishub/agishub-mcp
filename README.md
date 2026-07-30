@@ -68,7 +68,7 @@ are paid‑only (they touch metered infrastructure, so they run exclusively on t
 | `lookup_timezone` | Resolve a city or country to its IANA timezone(s). "Delhi" → `Asia/Kolkata`. | MCP · HTTP | $0.001 |
 | `date_math` | Add/subtract time respecting DST, or diff two datetimes across zones. | MCP · HTTP | $0.001 |
 | `find_meeting_slots` | Overlapping working‑hour slots across timezones (skips weekends & public holidays). | MCP · HTTP | free: 1 slot · **$0.02**: all |
-| `is_holiday` | Is a date a public holiday in a country (ISO 3166‑1)? Data from Nager.Date. | MCP · HTTP | $0.001 |
+| `is_holiday` | Is a date a public holiday in a country (ISO 3166‑1)? Authoritative public‑holiday data. | MCP · HTTP | $0.001 |
 | `list_timezones` | List or search valid IANA timezone names. | MCP | free |
 
 ### 🕸️ Web — read any web page as clean markdown
@@ -77,7 +77,7 @@ are paid‑only (they touch metered infrastructure, so they run exclusively on t
 |------|--------------|:--------:|:-----------:|
 | `extract` | Fetch any public URL and return its main content as clean, token‑efficient markdown (title, headings, links, lists). Optional `render:true` runs a headless browser for JS‑heavy pages / SPAs. Built for RAG. | MCP · HTTP | **$0.004** |
 
-### 🤖 AI — NLP & generation on Workers AI (no external API key)
+### 🤖 AI — NLP & generation (no external API key)
 
 | Tool | What it does | Channels | Cost (x402) |
 |------|--------------|:--------:|:-----------:|
@@ -86,10 +86,10 @@ are paid‑only (they touch metered infrastructure, so they run exclusively on t
 | `extract_entities` | Extract named entities (people, orgs, locations, dates) as structured JSON. | MCP · HTTP | $0.003 |
 | `embed` | Turn text into a multilingual embedding vector (BGE‑M3) for semantic search / RAG. | MCP · HTTP | $0.001 |
 | `chat` | Ask a general‑purpose LLM a question, with an optional system prompt. | MCP · HTTP | $0.003 |
-| `transcribe` | Transcribe an audio file (by public URL) to text with Whisper. | MCP · HTTP | $0.006 |
+| `transcribe` | Transcribe an audio file (by public URL) to text. | MCP · HTTP | $0.006 |
 | `tts` | Convert text into spoken audio (base64 MP3), in several languages. | HTTP | $0.005 |
 
-### 🧠 Memory / RAG — persistent semantic memory on Vectorize
+### 🧠 Memory / RAG — persistent semantic memory
 
 | Tool | What it does | Channels | Cost (x402) |
 |------|--------------|:--------:|:-----------:|
@@ -108,7 +108,7 @@ are paid‑only (they touch metered infrastructure, so they run exclusively on t
 | Tool | What it does | Channels | Cost (x402) |
 |------|--------------|:--------:|:-----------:|
 | `convert_currency` | Convert an amount between currencies using live daily FX rates (ISO 4217). | MCP · HTTP | $0.001 |
-| `price` | Live USD spot prices for cryptocurrencies by ticker (BTC, ETH, SOL). Via Coinbase. | MCP · HTTP | $0.001 |
+| `price` | Live USD spot prices for cryptocurrencies by ticker (BTC, ETH, SOL). | MCP · HTTP | $0.001 |
 
 ### 🔧 Utilities & links
 
@@ -122,9 +122,9 @@ are paid‑only (they touch metered infrastructure, so they run exclusively on t
 
 | Tool | What it does | Channels | Cost (x402) |
 |------|--------------|:--------:|:-----------:|
-| `pdf` | Render a public URL or raw HTML into a PDF (base64). Headless Chromium. | HTTP | $0.008 |
+| `pdf` | Render a public URL or raw HTML into a PDF (base64). Headless browser. | HTTP | $0.008 |
 | `screenshot` | Capture a PNG screenshot of any public URL (full page or viewport). | HTTP | $0.006 |
-| `generate` (image) | Generate an image from a text prompt (base64 PNG). Backed by FLUX.1. | HTTP | $0.01 |
+| `generate` (image) | Generate an image from a text prompt (base64 PNG). | HTTP | $0.01 |
 | `automate` (browser) | Drive a headless browser through steps — click, type, wait, extract, screenshot — for logins, forms and multi‑step flows. | HTTP | $0.01 |
 
 > New services plug into the same MCP + x402 doors and appear automatically in

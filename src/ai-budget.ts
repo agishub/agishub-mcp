@@ -37,7 +37,7 @@ export async function runAi(
   kind: keyof typeof EST,
 ): Promise<unknown> {
   const ai = ctx.env?.AI;
-  if (!ai) throw new Error("Workers AI is not configured (missing AI binding).");
+  if (!ai) throw new Error("The AI service is temporarily unavailable.");
   const kv = ctx.env?.LINKS;
 
   // Guard: on the free MCP channel, stop once today's free allowance is used up.
