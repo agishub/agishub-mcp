@@ -120,7 +120,9 @@ app.use(async (c, next) => {
   c.executionCtx.waitUntil(
     (async () => {
       const reqBody = reqClone ? await readBodyCapped(reqClone) : "";
-      const respBody = await readBodyCapped(resClone);
+      // Saltar solo el stream persistente GET /sse (no cierra); las respuestas
+      // SSE de las POST a /mcp* sí se capturan (se desenvuelven a JSON).
+      const respBody = await readBodyCapped(resClone, { skip: path.startsWith("/sse") });
       await writeTrace(c.env, { ...meta, tool: toolFor(path, reqBody), reqBody, respBody });
     })(),
   );
