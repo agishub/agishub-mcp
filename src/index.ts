@@ -21,6 +21,9 @@ import { withTimeout } from "./billing/x402";
 import { httpOperations } from "./resolver";
 import { mountBackoffice } from "./private/backoffice";
 import { handleQueue } from "./webhook-consumer";
+import {
+  shouldTrace, readBodyCapped, callerIp, callerWallet, channelFor, toolFor, writeTrace,
+} from "./traces";
 
 // Combined hub — every mcp-channel tool. Kept for back-compat at /mcp.
 // (Class name is unchanged to preserve the existing Durable Object migration.)
@@ -78,6 +81,50 @@ export class CryptoMCP extends McpAgent {
 }
 
 const app = new Hono<{ Bindings: Env }>();
+
+// Trazas de uso: una fila en D1 por cada llamada a las superficies de tools.
+// Va ANTES del gate x402 para envolver toda la cadena y capturar también los
+// retos 402 y la wallet del pagador (cabecera X-PAYMENT). No bloquea la
+// respuesta (waitUntil) y nunca rompe la petición.
+app.use(async (c, next) => {
+  const path = new URL(c.req.url).pathname;
+  const ua = c.req.header("user-agent") || "";
+  // Solo superficies de cliente; saltar el warmer interno (cron vía SELF).
+  if (!shouldTrace(path) || ua === "timezone-toolkit-healthcheck/1.0") return next();
+
+  const start = Date.now();
+  const method = c.req.method;
+  // Clonar es síncrono y barato; leer los cuerpos (lento) se hace luego en
+  // waitUntil para NO añadir latencia al camino de la petición/pago.
+  const reqClone = method === "GET" || method === "HEAD" ? null : c.req.raw.clone();
+
+  await next();
+
+  const res = c.res;
+  const resClone = res.clone();
+  const durationMs = Date.now() - start;
+  const h = c.req.raw.headers;
+  const meta = {
+    ts: new Date().toISOString(),
+    method,
+    path,
+    channel: channelFor(path),
+    status: res.status,
+    durationMs,
+    ip: callerIp(h),
+    country: h.get("cf-ipcountry") || "",
+    userAgent: ua,
+    wallet: callerWallet(h),
+    paid: path.startsWith("/paid/") || res.status === 402,
+  };
+  c.executionCtx.waitUntil(
+    (async () => {
+      const reqBody = reqClone ? await readBodyCapped(reqClone) : "";
+      const respBody = await readBodyCapped(resClone);
+      await writeTrace(c.env, { ...meta, tool: toolFor(path, reqBody), reqBody, respBody });
+    })(),
+  );
+});
 
 // Billing gate: x402 enforcement on the priced /v1/* and /paid/* routes. Mounted
 // globally; only acts on the paths in its route table (built from the Catalog).
