@@ -4,6 +4,8 @@
 
 **Pay-per-call tools for AI agents — no signup, no API keys, just USDC.**
 
+### ▶ [Try any tool live in your browser — no install](https://api.agishub.com/try)
+
 Live data & utilities over [x402](https://x402.org) micropayments on **Base**. Your agent
 pays a few tenths of a cent per call from its own wallet; no accounts, no monthly plans.
 
