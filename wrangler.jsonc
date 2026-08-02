@@ -1,5 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Nombre del worker en Cloudflare. Se mantiene "timezone-toolkit" (invisible
+  // para usuarios, que solo ven api.agishub.com) porque renombrarlo exigiría
+  // recrear todos los secretos, cuyos valores no tenemos. Carpeta/npm/GitHub =
+  // agishub-mcp; el nombre del worker puede diferir sin problema.
   "name": "timezone-toolkit",
   "main": "src/index.ts",
   "compatibility_date": "2025-03-10",
