@@ -53,7 +53,7 @@ Discovery:    https://api.agishub.com/openapi.json
 
 ## Tools
 
-**24 tools across 13 services.** Prices are per call in USDC on Base. Tools marked
+**30 tools across 12 services.** Prices are per call in USDC on Base. Tools marked
 **MCP · HTTP** are **free via MCP** and pay‑per‑call via **HTTP x402**; tools marked **HTTP**
 are paid‑only (they touch metered infrastructure, so they run exclusively on the x402 endpoint).
 
