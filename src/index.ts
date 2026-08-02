@@ -195,7 +195,13 @@ export default {
     ctx.waitUntil(
       (async () => {
         try {
-          await withTimeout(env.SELF.fetch(`${BASE_URL}/paid/now-in`), 10000);
+          // UA de health-probe → el middleware de trazas lo salta (ruido interno).
+          await withTimeout(
+            env.SELF.fetch(`${BASE_URL}/paid/now-in`, {
+              headers: { "user-agent": "timezone-toolkit-healthcheck/1.0" },
+            }),
+            10000,
+          );
         } catch {
           /* best-effort warm */
         }

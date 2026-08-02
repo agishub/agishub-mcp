@@ -10,8 +10,8 @@
  * try/catch — las trazas nunca deben romper ni ralentizar una petición real.
  */
 
-const MAX_BODY = 4000; // caracteres almacenados por cuerpo
-const MAX_READ = 100_000; // no leemos cuerpos mayores (imágenes, PDFs…)
+const MAX_BODY = 200_000; // caracteres almacenados por cuerpo (petición/respuesta completas)
+const MAX_READ = 300_000; // por encima de esto no leemos (imágenes/PDF base64 enormes)
 
 /** ¿Trazamos esta ruta? Solo superficies de cliente; no consola/estáticos/health. */
 export function shouldTrace(path: string): boolean {
