@@ -28,6 +28,10 @@
   "ai": { "binding": "AI" },
   "browser": { "binding": "BROWSER" },
   "kv_namespaces": [{ "binding": "LINKS", "id": "7c51149b42224e2297ca49db0b22d758" }],
+  // Trazas de uso (todas las llamadas y respuestas) — consultables en /console.
+  "d1_databases": [
+    { "binding": "TRACES", "database_name": "agishub-traces", "database_id": "c8074d53-e34c-4ecd-87e6-dbceb54c55c8" }
+  ],
   "vectorize": [{ "binding": "VECTORIZE", "index_name": "agishub-memory" }],
   "queues": {
     "producers": [{ "queue": "agishub-webhooks", "binding": "WEBHOOK_QUEUE" }],

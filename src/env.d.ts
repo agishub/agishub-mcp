@@ -25,4 +25,7 @@ interface Env {
   // the console fails closed (503) — never public. Worker secrets only.
   CONSOLE_USER?: string;
   CONSOLE_PASS?: string;
+  // D1 de trazas de uso (binding en wrangler.jsonc). Una fila por llamada a las
+  // tools: quién (IP, wallet, país, UA), cuándo, qué y la respuesta.
+  TRACES?: D1Database;
 }
