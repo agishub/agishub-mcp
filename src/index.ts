@@ -20,6 +20,7 @@ import { x402Middleware } from "./billing";
 import { withTimeout } from "./billing/x402";
 import { httpOperations } from "./resolver";
 import { mountBackoffice } from "./private/backoffice";
+import { mountTry } from "./try";
 import { handleQueue } from "./webhook-consumer";
 import {
   shouldTrace, readBodyCapped, callerIp, callerWallet, channelFor, toolFor, writeTrace,
@@ -134,6 +135,9 @@ app.use(x402Middleware);
 
 // HTTP adapter: mounts /v1/<op> and /paid/<op> for every operation on the http channel.
 mountHttp(app);
+
+// Public "try it" page (no login) — conversion surface, separate from /console.
+mountTry(app);
 
 // Custom domain of the deployed Worker (used by the cron warmer and back-office).
 const BASE_URL = "https://api.agishub.com";
