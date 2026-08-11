@@ -55,7 +55,7 @@ Discovery:    https://api.agishub.com/openapi.json
 
 ## Tools
 
-**30 tools across 12 services.** Prices are per call in USDC on Base. Tools marked
+**34 tools across 12 services.** Prices are per call in USDC on Base. Tools marked
 **MCP · HTTP** are **free via MCP** and pay‑per‑call via **HTTP x402**; tools marked **HTTP**
 are paid‑only (they touch metered infrastructure, so they run exclusively on the x402 endpoint).
 
@@ -73,11 +73,15 @@ are paid‑only (they touch metered infrastructure, so they run exclusively on t
 | `is_holiday` | Is a date a public holiday in a country (ISO 3166‑1)? Authoritative public‑holiday data. | MCP · HTTP | $0.001 |
 | `list_timezones` | List or search valid IANA timezone names. | MCP | free |
 
-### 🕸️ Web — read any web page as clean markdown
+### 🕸️ Web — read, scrape & extract from any page
 
 | Tool | What it does | Channels | Cost (x402) |
 |------|--------------|:--------:|:-----------:|
 | `extract` | Fetch any public URL and return its main content as clean, token‑efficient markdown (title, headings, links, lists). Optional `render:true` runs a headless browser for JS‑heavy pages / SPAs. Built for RAG. | MCP · HTTP | **$0.004** |
+| `scrape` | Extract specific elements from a JS‑rendered page by CSS selector — text and attributes of every match. Backed by a headless browser, so it works on SPAs. | HTTP | $0.004 |
+| `structured` | AI‑powered structured extraction: give a URL plus a prompt and/or a JSON Schema and get back clean structured JSON (e.g. product name, price, rating). | HTTP | $0.006 |
+| `snapshot` | Capture several representations in one call — rendered HTML, a PNG screenshot, and optional markdown & accessibility tree. | HTTP | $0.008 |
+| `links` | Return every hyperlink on a JS‑rendered page as absolute URLs, with visible‑only and same‑site filters. | HTTP | $0.002 |
 
 ### 🤖 AI — NLP & generation (no external API key)
 

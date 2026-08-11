@@ -114,6 +114,42 @@ export const catalog: Catalog = {
       description:
         "Fetch any public web page and return its main content as clean, token-efficient Markdown (title, description, headings, links, lists). Set render:true to execute JavaScript first for single-page apps or JS-heavy pages that would otherwise come back empty. Built for RAG and for agents that need to read the contents of a URL.",
     },
+    scrape: {
+      channels: ["http"],
+      pricing: { x402: "$0.004" },
+      visibility: "public",
+      httpPath: "scrape",
+      tags: ["web", "scrape", "selectors", "extract", "html"],
+      description:
+        "Extract specific elements from a JavaScript-rendered page by CSS selector. Give a list of selectors (e.g. 'h1', '.price', 'a.product') and get back the text and attributes of every match. Backed by a headless browser, so it works on SPAs and JS-heavy pages.",
+    },
+    links: {
+      channels: ["http"],
+      pricing: { x402: "$0.002" },
+      visibility: "public",
+      httpPath: "links",
+      tags: ["web", "links", "crawl", "urls"],
+      description:
+        "Return every hyperlink on a JavaScript-rendered page as a list of absolute URLs, with options to keep only visible links or only same-site links. Backed by a headless browser. Use it to map a site or seed a crawler.",
+    },
+    structured: {
+      channels: ["http"],
+      pricing: { x402: "$0.006" },
+      visibility: "public",
+      httpPath: "extract-json",
+      tags: ["web", "ai", "extract", "structured", "json"],
+      description:
+        "AI-powered structured extraction: give a URL plus a natural-language prompt and/or a JSON Schema, and get back clean structured JSON (e.g. product name, price, rating). Renders the page in a headless browser first, so it works on SPAs.",
+    },
+    snapshot: {
+      channels: ["http"],
+      pricing: { x402: "$0.008" },
+      visibility: "public",
+      httpPath: "snapshot",
+      tags: ["web", "snapshot", "html", "screenshot", "markdown"],
+      description:
+        "Capture several representations of a page in one call — rendered HTML plus a PNG screenshot by default, and optionally Markdown and the accessibility tree. Backed by a headless browser. Saves round-trips when an agent needs both the content and a visual of a page.",
+    },
   },
   render: {
     pdf: {
