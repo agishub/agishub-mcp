@@ -6,6 +6,7 @@
 import type { z } from "zod";
 import type { OperationContext } from "../types";
 import { extract as extractCore } from "./core/extract";
+import * as Q from "./core/quickactions";
 import * as S from "./schemas";
 
 export async function extract(ctx: OperationContext<z.infer<typeof S.extract>>) {
@@ -25,4 +26,22 @@ export async function extract(ctx: OperationContext<z.infer<typeof S.extract>>) 
     };
   }
   return result;
+}
+
+// ── Browser Rendering Quick Actions (published on the paid HTTP channel) ───────
+
+export function scrape(ctx: OperationContext<z.infer<typeof S.scrape>>) {
+  return Q.scrape(ctx.input, ctx.env);
+}
+
+export function links(ctx: OperationContext<z.infer<typeof S.links>>) {
+  return Q.links(ctx.input, ctx.env);
+}
+
+export function structured(ctx: OperationContext<z.infer<typeof S.structured>>) {
+  return Q.structured(ctx.input, ctx.env);
+}
+
+export function snapshot(ctx: OperationContext<z.infer<typeof S.snapshot>>) {
+  return Q.snapshot(ctx.input, ctx.env);
 }

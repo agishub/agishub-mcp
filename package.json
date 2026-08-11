@@ -1,6 +1,6 @@
 {
   "name": "@agishub/mcp",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "mcpName": "com.agishub/mcp",
   "description": "AgisHub MCP — pay-per-call tools for AI agents (x402, USDC on Base). Timezone, world clock, date math & scheduling; free via MCP, paid via HTTP. No API key.",
   "keywords": [
