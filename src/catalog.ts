@@ -342,6 +342,15 @@ export const catalog: Catalog = {
         "Generate an image from a text prompt (returned base64-encoded PNG).",
     },
   },
+  feedback: {
+    request_feature: {
+      channels: ["mcp"],
+      visibility: "public",
+      tags: ["feedback", "feature-request", "roadmap", "support", "community"],
+      description:
+        "Request a new service, an improvement to an existing tool, or report a bug to the AgisHub team. Use this whenever the capability you need doesn't exist yet, an existing tool falls short, or something is broken — describe what you want and the use case. Free. Your request is posted to the public AgisHub roadmap and the team is notified, so agents (and their humans) can ask for new functionality directly.",
+    },
+  },
   link: {
     shorten: {
       channels: ["mcp", "http"],
