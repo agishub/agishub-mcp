@@ -11,7 +11,7 @@
  * by src/resolver.ts, billed by src/billing/*, exposed by src/adapters/*.
  */
 
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { McpAgent } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerTools } from "./adapters/mcp";
@@ -142,6 +142,11 @@ mountTry(app);
 // Custom domain of the deployed Worker (used by the cron warmer and back-office).
 const BASE_URL = "https://api.agishub.com";
 
+// Where callers reach a human: questions, bug reports, feature requests, feedback.
+// Surfaced on the landing page, in the OpenAPI contact, and in the non-MCP error
+// hint so anyone who touches the API can find a way to talk to us.
+const SUPPORT_URL = "https://github.com/agishub/agishub-mcp/discussions";
+
 const LANDING = `AgisHub — remote MCP servers + x402 APIs for AI agents
 
 Focused MCP endpoints:
@@ -153,7 +158,9 @@ x402 pay-per-call HTTP (USDC on Base):
        ${httpOperations()
   .map((e) => `${(e.catalog.pricing?.x402 ?? "").padEnd(7)} POST /paid/${e.seg}`)
   .join("\n       ")}
+Request features:  call the MCP tool 'request_feature' — ask for new services, improvements, or report bugs (free)
 Docs:  https://github.com/agishub/agishub-mcp  ·  /openapi.json
+Talk to us:  ${SUPPORT_URL}  (questions, bugs, requests)
 `;
 app.get("/", (c) => c.text(LANDING));
 app.get("/health", (c) => c.text(LANDING));
@@ -173,18 +180,75 @@ app.get("/favicon.ico", async () => {
   return new Response(r.body, { headers: { "content-type": "image/png", "cache-control": "public, max-age=86400" } });
 });
 
+// Guard: friendly hint for NON-MCP callers hitting an MCP endpoint.
+// Real MCP clients (Claude, Cursor, our own console) always POST with
+// 'Accept: text/event-stream' and a spec-compliant 'initialize'. A plain HTTP
+// script (e.g. python-requests) does neither and gets an opaque 406/400 from the
+// transport. We detect that and point them to the direct pay-per-call HTTP
+// endpoint instead. Conservative: only fires on a POST that is clearly non-MCP,
+// so compliant clients are never affected.
+const MCP_HTTP_HINT: Record<string, { seg: string; ex: unknown }> = {
+  timezone: { seg: "now-in", ex: { timezone: "Asia/Tokyo" } },
+  web: { seg: "web-scraper", ex: { url: "https://example.com" } },
+  ai: { seg: "chat", ex: { prompt: "In one sentence, what is the x402 protocol?" } },
+  memory: { seg: "memory-search", ex: { namespace: "demo", query: "capital of France" } },
+  webhook: { seg: "webhook-relay", ex: { url: "https://httpbin.org/post", payload: { event: "ping" } } },
+  crypto: { seg: "crypto-price", ex: { symbols: "BTC,ETH,SOL" } },
+};
+
+async function nonMcpHint(c: Context, svc: string): Promise<Response | null> {
+  if (c.req.method !== "POST") return null;
+  const notSSE = !(c.req.header("accept") || "").includes("text/event-stream");
+  let badInit = false;
+  if (!notSSE) {
+    try {
+      const b = (await c.req.raw.clone().json()) as { method?: string; params?: { protocolVersion?: unknown } };
+      if (b?.method === "initialize") badInit = !b.params?.protocolVersion;
+    } catch {
+      /* non-JSON body: let the transport handle it */
+    }
+  }
+  if (!notSSE && !badInit) return null;
+  const h = MCP_HTTP_HINT[svc];
+  const direct = h ? `POST ${BASE_URL}/paid/${h.seg}` : `${BASE_URL}/openapi.json`;
+  const why = notSSE
+    ? "missing 'Accept: application/json, text/event-stream' header"
+    : "'initialize' params must include protocolVersion, capabilities and clientInfo";
+  return c.json(
+    {
+      jsonrpc: "2.0",
+      id: null,
+      error: {
+        code: -32000,
+        message:
+          `This is an MCP (Streamable HTTP) endpoint for MCP clients like Claude or Cursor (${why}). ` +
+          `For a plain HTTP script, call the direct pay-per-call endpoint instead: ${direct}`,
+      },
+      hint: {
+        mcp_clients: "Use an MCP client (Claude, Cursor) — the MCP tier is free.",
+        http_direct: direct,
+        example_body: h?.ex,
+        try_live: `${BASE_URL}/try`,
+        docs: `${BASE_URL}/openapi.json`,
+        support: SUPPORT_URL,
+      },
+    },
+    400,
+  );
+}
+
 // Free MCP transports.
 // Combined hub (all tools) — back-compat.
-app.all("/mcp", (c) => TimezoneToolkitMCP.serve("/mcp").fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
+app.all("/mcp", async (c) => (await nonMcpHint(c, "")) ?? TimezoneToolkitMCP.serve("/mcp").fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
 app.all("/sse", (c) => TimezoneToolkitMCP.serveSSE("/sse").fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
 app.all("/sse/message", (c) => TimezoneToolkitMCP.serveSSE("/sse").fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
 // Focused endpoints — one per capability domain, each its own registry entry.
-app.all("/mcp/timezone", (c) => TimezoneMCP.serve("/mcp/timezone", { binding: "TIMEZONE_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
-app.all("/mcp/web", (c) => WebScraperMCP.serve("/mcp/web", { binding: "WEB_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
-app.all("/mcp/ai", (c) => AiMCP.serve("/mcp/ai", { binding: "AI_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
-app.all("/mcp/memory", (c) => MemoryMCP.serve("/mcp/memory", { binding: "MEMORY_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
-app.all("/mcp/webhook", (c) => WebhookMCP.serve("/mcp/webhook", { binding: "WEBHOOK_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
-app.all("/mcp/crypto", (c) => CryptoMCP.serve("/mcp/crypto", { binding: "CRYPTO_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
+app.all("/mcp/timezone", async (c) => (await nonMcpHint(c, "timezone")) ?? TimezoneMCP.serve("/mcp/timezone", { binding: "TIMEZONE_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
+app.all("/mcp/web", async (c) => (await nonMcpHint(c, "web")) ?? WebScraperMCP.serve("/mcp/web", { binding: "WEB_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
+app.all("/mcp/ai", async (c) => (await nonMcpHint(c, "ai")) ?? AiMCP.serve("/mcp/ai", { binding: "AI_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
+app.all("/mcp/memory", async (c) => (await nonMcpHint(c, "memory")) ?? MemoryMCP.serve("/mcp/memory", { binding: "MEMORY_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
+app.all("/mcp/webhook", async (c) => (await nonMcpHint(c, "webhook")) ?? WebhookMCP.serve("/mcp/webhook", { binding: "WEBHOOK_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
+app.all("/mcp/crypto", async (c) => (await nonMcpHint(c, "crypto")) ?? CryptoMCP.serve("/mcp/crypto", { binding: "CRYPTO_MCP" }).fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext));
 
 // Back-office (console, health dashboards, agent tests). Kept out of the public
 // repo: src/private/backoffice.ts is a no-op stub upstream; the real file is local.

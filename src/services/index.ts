@@ -17,6 +17,7 @@ import { cryptoService } from "./crypto";
 import { ragService } from "./rag";
 import { webhookService } from "./webhook";
 import { browserService } from "./browser";
+import { feedbackService } from "./feedback";
 
 export const services: ServiceDefinition[] = [
   timezoneService,
@@ -31,6 +32,7 @@ export const services: ServiceDefinition[] = [
   ragService,
   webhookService,
   browserService,
+  feedbackService,
 ];
 
 const byId = new Map<string, Operation>();
