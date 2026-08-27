@@ -8,6 +8,13 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-03-10",
   "compatibility_flags": ["nodejs_compat"],
+  // ajv hace codegen (new Function), prohibido en Workers, y rompía la extensión
+  // bazaar de x402. Lo redirigimos a un shim passthrough: ajv solo valida esquemas
+  // de discovery nuestros (no toca verify/settle del pago). Ver src/shims/ajv-shim.mjs.
+  "alias": {
+    "ajv": "./src/shims/ajv-shim.mjs",
+    "ajv/dist/2020.js": "./src/shims/ajv-shim.mjs"
+  },
   "routes": [
     { "pattern": "api.agishub.com", "custom_domain": true },
     { "pattern": "timezone-toolkit.agishub.com", "custom_domain": true }
