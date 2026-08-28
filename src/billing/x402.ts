@@ -11,8 +11,6 @@ import { paymentMiddleware, x402ResourceServer } from "@x402/hono";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { createFacilitatorConfig } from "@coinbase/x402";
-import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { httpOperations } from "../resolver";
 
 export function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -94,12 +92,12 @@ export const x402Middleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
         : new HTTPFacilitatorClient({ url: c.env.X402_FACILITATOR_URL || "https://x402.org/facilitator" });
     // Wrap CDP so getSupported() can't hang the 402 build (timeout + static fallback).
     const facilitatorClient = new ResilientFacilitator(upstream as any);
-    // Bazaar discovery is ENABLED (per-route `extensions.bazaar` below), so our paid
-    // tools appear in the x402 catalog (CDP facilitator). The historic blocker was
-    // ajv's runtime `new Function` (forbidden in Workers), which hung /paid on cold
-    // isolates; it is neutralized by a Workers-safe ajv shim wired via wrangler
-    // `alias` (src/shims/ajv-shim.mjs). ajv only validates our own discovery schemas,
-    // never verify/settle.
+    // NOTE: the x402 bazaar discovery extension validates each route's extension
+    // payload with ajv, which needs runtime `new Function`. Cloudflare Workers blocks
+    // that ("Code generation from strings disallowed"), which hung every /paid call
+    // on cold isolates. So we do NOT register the bazaar extension. Routes stay valid
+    // x402 (exact scheme) 402s — still probe-discoverable — and the JSON Schemas live
+    // in /openapi.json (plain JSON). Do NOT reintroduce the bazaar extension here.
     const resourceServer = new x402ResourceServer(facilitatorClient as any).register(
       network,
       new ExactEvmScheme(),
@@ -115,27 +113,10 @@ export const x402Middleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
         accepts: { scheme: "exact" as const, price, network, payTo: payTo as `0x${string}` },
         description: ep.catalog.description,
       };
-      // Discovery del bazaar: declara cómo se llama esta tool de pago (input JSON
-      // Schema desde el zod de la operación) para que el catálogo x402 (facilitador
-      // CDP) la indexe. Envuelto en try/catch: un esquema problemático nunca rompe el
-      // paywall — como mucho esa ruta no se anuncia.
-      let postCfg: unknown = cfg;
-      try {
-        const bazaar = declareDiscoveryExtension({
-          method: "POST",
-          bodyType: "json",
-          inputSchema: zodToJsonSchema(ep.operation.schema, { target: "openApi3" }) as Record<string, unknown>,
-          input: {},
-          output: { example: {} },
-        } as any);
-        postCfg = { ...cfg, extensions: { bazaar } };
-      } catch {
-        postCfg = cfg;
-      }
       for (const base of [`/v1/${ep.seg}`, `/paid/${ep.seg}`]) {
         routes[`HEAD ${base}`] = cfg;
         routes[`GET ${base}`] = cfg;
-        routes[`POST ${base}`] = postCfg;
+        routes[`POST ${base}`] = cfg;
       }
     }
     // syncFacilitatorOnStart must stay ON: the facilitator sync provides the data
