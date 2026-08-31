@@ -49,7 +49,27 @@ export function mountHttp(app: Hono<{ Bindings: Env }>): void {
     };
     for (const base of [`/v1/${seg}`, `/paid/${seg}`]) {
       app.post(base, run);
-      app.get(base, (c) => c.json({ usage: `POST ${base} — see /openapi.json for parameters.` }));
+      // A GET to a paid endpoint is not the productive call — it returns a
+      // self-describing doc so agents/crawlers know to POST and what it costs.
+      app.get(base, (c) =>
+        c.json(
+          {
+            method: "POST",
+            endpoint: base,
+            description: catalog.description,
+            payment: {
+              protocol: "x402",
+              price: catalog.pricing?.x402 ?? null,
+              network: "base",
+              asset: "USDC",
+            },
+            usage: `POST ${base} with a JSON body. An unpaid request returns an x402 HTTP 402 challenge; sign the USDC payment on Base and retry.`,
+            schema: "https://api.agishub.com/openapi.json",
+          },
+          200,
+          { allow: "POST" },
+        ),
+      );
     }
   }
 }
