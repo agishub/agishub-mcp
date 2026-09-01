@@ -19,7 +19,7 @@
   // and an in-process app.fetch hangs, so this is the supported way.)
   "services": [{ "binding": "SELF", "service": "timezone-toolkit" }],
   "vars": {
-    "X402_PAY_TO": "0xF41DaF0BA8D5f5915d927e005b2EB2dEd7b6feCF",
+    "X402_PAY_TO": "0x23Fc725e8EAa1c58900C6507Ba89be99a6DFc75d",
     "X402_NETWORK": "base",
     "X402_PRICE": "$0.02",
     "X402_FACILITATOR_URL": ""
