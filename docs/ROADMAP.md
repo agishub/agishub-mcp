@@ -126,14 +126,13 @@ Middleware adapters/http.ts: firma de wallet con saldo>0 → descuenta y ejecuta
 
 ### Sprint 3 · Probar demanda + capa de control (semanas 3–4)
 
-#### ☐ 3.1 North-star: wallets pagadoras externas distintas  · _(rápido, hazlo ya)_
-En `src/private/backoffice.ts`, nuevo card + serie:
-```sql
-SELECT COUNT(DISTINCT wallet) FROM traces
-WHERE channel='http' AND paid=1 AND method='POST' AND status=200
-  AND lower(wallet) NOT IN ('0x448d4734...');  -- wallets de test propias
-```
-- **Hecho cuando:** la consola muestra "Compradores externos" (hoy 0) como métrica principal.
+#### ☑ 3.1 North-star: wallets pagadoras externas distintas  · _hecho 2026-09-02_
+Card destacado "Compradores externos" en la consola (hoy **0**, objetivo 10).
+- **Fuente:** on-chain (`/health/payments`, `eth_getLogs`), NO la columna `wallet` de trazas.
+- **Motivo:** se descubrió que `callerWallet` (traces.ts) **no rellena `wallet` en ninguna traza** (0 en todo el histórico) — no extrae la dirección de la cabecera `X-PAYMENT`. Por eso se usa el `from` on-chain, que es fiable. `payers_ext` excluye `OWN_WALLETS` (0x448d…, pagador de test) y el propio payTo.
+
+#### ☐ 3.1b (follow-up) Arreglar captura de `wallet` en trazas
+`callerWallet`/`findAddress` en `src/traces.ts` devuelven "" para los pagos reales. Verificar contra un payload `X-PAYMENT` real (x402: `payload.authorization.from`) y corregir, para poder atribuir pagos a wallet a nivel de traza (no solo on-chain). Nice-to-have; la métrica north-star ya funciona vía on-chain.
 
 #### ☐ 3.2 Listarte en directorios  · _(alta = usuario)_
 - x402scan "Add your API": verificar que los `/v1/*` devuelven reto **402 x402 bien formado** (`accepts`, precio, network, asset) para que el scanner indexe; luego formulario.
@@ -168,3 +167,4 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 
 ## 8. Bitácora
 - 2026-09-02 · Documento creado. Split freemium de `extract` ya en producción (MCP cap 8k + nudge; `/v1/web-scraper` completo con render). Consola: cards "Ejecuciones reales" vs "Sondeos (GET)" separados; panel Pagos on-chain arreglado (transfers vía eth_getLogs, cuadra con saldo).
+- 2026-09-02 · **3.1 hecho**: card "Compradores externos" (north-star) en consola, fuente on-chain. Hoy = 0. Descubierto bug: `wallet` no se captura en trazas (ver 3.1b).
