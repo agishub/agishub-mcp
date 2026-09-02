@@ -45,7 +45,8 @@ Stack: Worker Hono `timezone-toolkit` / api.agishub.com · `src/services/<svc>/{
 
 ### Sprint 1 · La cuña de distribución (semana 1)
 
-#### ☐ 1.1 Repo público MIT `agishub` (instalador de un comando)
+#### ☑ 1.1 Repo público MIT `agishub` (instalador de un comando)  · _hecho 2026-09-02 (local, sin publicar)_
+Creado en `~/Developer/Agishub/agishub` — TS, compila, verificado end-to-end. Falta publicar (1.3).
 Nuevo repo `github.com/agishub/agishub`, TS, Node ≥18.
 ```
 agishub/
@@ -60,7 +61,8 @@ agishub/
 - `src/proxy.ts`: server MCP **stdio** con `@modelcontextprotocol/sdk` que reenvía a `https://api.agishub.com/mcp`.
 - **Hecho cuando:** `npx agishub add claude` → las tools aparecen en Claude Code.
 
-#### ☐ 1.2 Install de un comando por runtime
+#### ☑ 1.2 Install de un comando por runtime  · _hecho 2026-09-02_
+`agishub add claude|cursor|windsurf|vscode` mergea la config MCP con backup. Rutas manuales en README.
 ```bash
 # Claude Code
 claude mcp add --transport http agishub https://api.agishub.com/mcp
@@ -168,3 +170,4 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 ## 8. Bitácora
 - 2026-09-02 · Documento creado. Split freemium de `extract` ya en producción (MCP cap 8k + nudge; `/v1/web-scraper` completo con render). Consola: cards "Ejecuciones reales" vs "Sondeos (GET)" separados; panel Pagos on-chain arreglado (transfers vía eth_getLogs, cuadra con saldo).
 - 2026-09-02 · **3.1 hecho**: card "Compradores externos" (north-star) en consola, fuente on-chain. Hoy = 0. Descubierto bug: `wallet` no se captura en trazas (ver 3.1b).
+- 2026-09-02 · **1.1 + 1.2 hechos**: repo `agishub` (CLI) creado en `~/Developer/Agishub/agishub`, compila y verificado (`try` conecta al hub, ve 26 tools, ejecuta `list_timezones` gratis; `add` mergea config con backup). Commit local. Pendiente: publicar (1.3) + repo GitHub.
