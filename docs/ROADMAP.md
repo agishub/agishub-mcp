@@ -74,7 +74,10 @@ claude mcp add --transport http agishub https://api.agishub.com/mcp
 - OpenClaw: manifest de skill apuntando al mismo URL.
 - **Hecho cuando:** Claude/Cursor/OpenClaw funcionan desde el README sin editar a mano.
 
-#### ☐ 1.3 Publicar y sembrar  · _(requiere credenciales del usuario)_
+#### ◐ 1.3 Publicar y sembrar  · _GitHub hecho 2026-09-02; npm + registry pendientes_
+- ☑ Repo público: https://github.com/agishub/agishub (topics: x402, mcp, ai-agents, agent-commerce, usdc; homepage agishub.com).
+- ☐ npm: `cd ~/Developer/Agishub/agishub && npm login && npm publish --access public` (nombre `agishub` libre; requiere tu 2FA).
+- ☐ MCP registry: `mcp-publisher login dns … && mcp-publisher publish` con la DNS key.
 ```bash
 npm version patch && npm publish --access public
 mcp-publisher login dns --domain agishub.com --private-key $(cat .mcpregistry_agishub_key)
