@@ -93,7 +93,7 @@ Archivos: `agishub-web` (hero + meta description + OG + FAQ), `public/llms.txt` 
 
 ### Sprint 2 · Endpoint-imán = empezar a poseer la vertical (semana 2)
 
-#### ☐ 2.1 `/v1/map` y `/v1/crawl` (capacidad propia con Browser Rendering)
+#### ◐ 2.1 `/v1/map` y `/v1/crawl` (capacidad propia con Browser Rendering)  · _esqueleto 2026-09-03_
 `/v1/map` (síncrono, acotado):
 ```
 schemas.ts   → map: { url, limit?(<=500), include_subdomains?, search? }
@@ -177,3 +177,4 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 - 2026-09-03 · **1.3 hechos (GitHub + npm)**: repo público `github.com/agishub/agishub` live + `@agishub/cli@0.1.0` en npm (scope evita guardia de similitud; comando `agishub` se mantiene en bin). Install: `npx @agishub/cli add claude`. Registry es nice-to-have para después.
 - 2026-09-03 · **1.4 hecho**: reposicionar one-liner completado en todos los archivos (agishub-web página + OG + FAQ + llms.txt; @agishub/cli description). Push agishub-web@main + agishub-mcp@x402-bazaar-discovery.
 - 2026-09-03 · **Sprint 1 cerrado (parcialmente)**: 1.1✓ 1.2✓ 1.3◐(GitHub+npm✓ v0.1.1, registry⏸ DNS signature mismatch) 1.4✓. Distribución OSS lista. Próximo: Sprint 2.1 (`/v1/map` + `/v1/crawl`).
+- 2026-09-03 · **2.1 inicio (esqueleto)**: endpoints `/v1/map` (síncrono, sitemap.xml + BFS) y `/v1/crawl` (asincrónico, job_id + queue) creados. Schemas, handlers, operations registrados. Catalog actualizado con precios ($0.002 map, $0.006 crawl). Compile sin errores. Pendiente: D1 migration (tabla crawl_jobs), completar core logic (queue consumer, extraction).
