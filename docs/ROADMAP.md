@@ -74,10 +74,10 @@ claude mcp add --transport http agishub https://api.agishub.com/mcp
 - OpenClaw: manifest de skill apuntando al mismo URL.
 - **Hecho cuando:** Claude/Cursor/OpenClaw funcionan desde el README sin editar a mano.
 
-#### ◐ 1.3 Publicar y sembrar  · _GitHub hecho 2026-09-02; npm + registry pendientes_
+#### ☑ 1.3 Publicar y sembrar  · _GitHub + npm hecho 2026-09-03; registry pendiente_
 - ☑ Repo público: https://github.com/agishub/agishub (topics: x402, mcp, ai-agents, agent-commerce, usdc; homepage agishub.com).
-- ☐ npm: `cd ~/Developer/Agishub/agishub && npm login && npm publish --access public` (nombre `agishub` libre; requiere tu 2FA).
-- ☐ MCP registry: `mcp-publisher login dns … && mcp-publisher publish` con la DNS key.
+- ☑ npm: `@agishub/cli@0.1.0` publicado. Install: `npx @agishub/cli add claude` (comando `agishub` se mantiene en bin).
+- ☐ MCP registry: `mcp-publisher login dns … && mcp-publisher publish` (server.json + DNS key). Nice-to-have para el período; puede ir después de que haya compradores reales.
 ```bash
 npm version patch && npm publish --access public
 mcp-publisher login dns --domain agishub.com --private-key $(cat .mcpregistry_agishub_key)
@@ -173,4 +173,5 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 ## 8. Bitácora
 - 2026-09-02 · Documento creado. Split freemium de `extract` ya en producción (MCP cap 8k + nudge; `/v1/web-scraper` completo con render). Consola: cards "Ejecuciones reales" vs "Sondeos (GET)" separados; panel Pagos on-chain arreglado (transfers vía eth_getLogs, cuadra con saldo).
 - 2026-09-02 · **3.1 hecho**: card "Compradores externos" (north-star) en consola, fuente on-chain. Hoy = 0. Descubierto bug: `wallet` no se captura en trazas (ver 3.1b).
-- 2026-09-02 · **1.1 + 1.2 hechos**: repo `agishub` (CLI) creado en `~/Developer/Agishub/agishub`, compila y verificado (`try` conecta al hub, ve 26 tools, ejecuta `list_timezones` gratis; `add` mergea config con backup). Commit local. Pendiente: publicar (1.3) + repo GitHub.
+- 2026-09-02 · **1.1 + 1.2 hechos**: repo `agishub` (CLI) creado en `~/Developer/Agishub/agishub`, compila y verificado (`try` conecta al hub, ve 26 tools, ejecuta `list_timezones` gratis; `add` mergea config con backup). Commit local.
+- 2026-09-03 · **1.3 hechos (GitHub + npm)**: repo público `github.com/agishub/agishub` live + `@agishub/cli@0.1.0` en npm (scope evita guardia de similitud; comando `agishub` se mantiene en bin). Install: `npx @agishub/cli add claude`. Registry es nice-to-have para después.
