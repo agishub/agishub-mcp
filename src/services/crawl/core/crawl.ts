@@ -72,8 +72,8 @@ export async function crawlCore(input: CrawlInput, env: Env): Promise<string> {
 
   // Store job in D1 (requires agishub_traces database with crawl_jobs table)
   try {
-    if (env.DB) {
-      await env.DB.prepare(
+    if (env.TRACES) {
+      await env.TRACES.prepare(
         `INSERT INTO crawl_jobs (job_id, url, status, payload, created_at)
          VALUES (?, ?, ?, ?, ?)`,
       )
@@ -120,8 +120,8 @@ export async function crawlCore(input: CrawlInput, env: Env): Promise<string> {
  */
 export async function getCrawlStatus(jobId: string, env: Env): Promise<CrawlJob | null> {
   try {
-    if (env.DB) {
-      const result = await env.DB.prepare(
+    if (env.TRACES) {
+      const result = await env.TRACES.prepare(
         `SELECT payload, status FROM crawl_jobs WHERE job_id = ? LIMIT 1`,
       )
         .bind(jobId)
@@ -147,11 +147,11 @@ export async function updateCrawlJob(
   env: Env,
 ): Promise<void> {
   try {
-    if (env.DB) {
+    if (env.TRACES) {
       const job = await getCrawlStatus(jobId, env);
       if (job) {
         const updated = { ...job, ...updates };
-        await env.DB.prepare(
+        await env.TRACES.prepare(
           `UPDATE crawl_jobs SET payload = ?, status = ? WHERE job_id = ?`,
         )
           .bind(
