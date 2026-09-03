@@ -87,9 +87,9 @@ mcp-publisher publish   # server.json: name "com.agishub/hub", desc ≤100 chars
 - GitHub topics: `x402` `mcp` `ai-agents` `agent-commerce`; `LICENSE` MIT.
 - **Hecho cuando:** en npm + registry.modelcontextprotocol.io + repo público con topics.
 
-#### ☐ 1.4 Reposicionar el one-liner
-Nueva frase: **"One install → every tool. Wallet-native, pay-per-call, no keys."**
-Archivos: `agishub-web` (hero + meta description + OG), `public/llms.txt`, `public/llms-full.txt`, descripción npm, descripción GitHub, `desc` del server.json.
+#### ☑ 1.4 Reposicionar el one-liner  · _hecho 2026-09-03_
+Nueva frase: **"One install → every tool for your AI agent. Wallet-native, pay-per-call, no keys (x402)."**
+Archivos: `agishub-web` (hero + meta description + OG + FAQ), `public/llms.txt` + `llms-full.txt`, descripción npm (@agishub/cli), `desc` del server.json. ✓ Completado.
 
 ### Sprint 2 · Endpoint-imán = empezar a poseer la vertical (semana 2)
 
@@ -175,3 +175,4 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 - 2026-09-02 · **3.1 hecho**: card "Compradores externos" (north-star) en consola, fuente on-chain. Hoy = 0. Descubierto bug: `wallet` no se captura en trazas (ver 3.1b).
 - 2026-09-02 · **1.1 + 1.2 hechos**: repo `agishub` (CLI) creado en `~/Developer/Agishub/agishub`, compila y verificado (`try` conecta al hub, ve 26 tools, ejecuta `list_timezones` gratis; `add` mergea config con backup). Commit local.
 - 2026-09-03 · **1.3 hechos (GitHub + npm)**: repo público `github.com/agishub/agishub` live + `@agishub/cli@0.1.0` en npm (scope evita guardia de similitud; comando `agishub` se mantiene en bin). Install: `npx @agishub/cli add claude`. Registry es nice-to-have para después.
+- 2026-09-03 · **1.4 hecho**: reposicionar one-liner completado en todos los archivos (agishub-web página + OG + FAQ + llms.txt; @agishub/cli description; server.json desc aún pendiente). Push agishub-web@main + agishub-mcp@x402-bazaar-discovery.
