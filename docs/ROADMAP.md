@@ -99,10 +99,13 @@ claude mcp add --transport http agishub https://api.agishub.com/mcp
   - Install: `npx @agishub/cli add claude` (o `npx @agishub/cli try`)
   - Comando bin: `agishub` (maintained en package.json `bin`)
   - Package: scoped (`@agishub/cli`) para evitar similarity guard de npm
-- ⏸ **MCP registry:** Deferred (nice-to-have, no bloquea Sprint 2)
-  - Blocker: DNS signature mismatch (key edad en el DNS ≠ nueva privada generada)
-  - Fix necesario: regenerar DNS TXT record en agishub.com con clave pública correcta
-  - Próximo intento: después de primeros 5+ compradores reales (validar product-market fit primero)
+- ⏸ **MCP registry:** Blocked on manual DNS update (see `docs/MCP_REGISTRY_SETUP.md`)
+  - Blocker: DNS has old public key; mcp-publisher expects match with our new private key
+  - **Manual fix required:** Update DNS TXT record `_mcp-registry.agishub.com` with new public key
+    - Public key to register: `e7y81bMDxi4NnxNYyKoaXKsxrFWpSgLXO/OIWRlUjh8=`
+    - Value: `v=MCPv1; k=ed25519; p=e7y81bMDxi4NnxNYyKoaXKsxrFWpSgLXO/OIWRlUjh8=`
+  - Once DNS updated (5-30 min propagation): run `mcp-publisher login dns` + `mcp-publisher publish`
+  - **Nice-to-have:** Can defer until after first 5+ payers (proves PMF first)
 ```bash
 npm version patch && npm publish --access public
 mcp-publisher login dns --domain agishub.com --private-key $(cat .mcpregistry_agishub_key)
