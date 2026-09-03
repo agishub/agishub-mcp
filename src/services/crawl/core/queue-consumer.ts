@@ -6,7 +6,7 @@
  * 4. Update job progress
  */
 
-import { extractCore } from "../../web/core/extract";
+import { extract } from "../../web/core/extract";
 import { updateCrawlJob, getCrawlStatus } from "./crawl";
 import type { Env } from "../../../types";
 
@@ -34,7 +34,7 @@ export async function handleCrawlQueueMessage(
     }
 
     // Extract page content
-    const extracted = await extractCoreCrawl(url, formats, env);
+    const extracted = await extractPageCrawl(url, formats, env);
 
     // Update job with new page result
     const updatedPages = job.pages.map(p =>
@@ -108,7 +108,7 @@ export async function handleCrawlQueueMessage(
  * Extract page to markdown/HTML (internal version for crawler).
  * Tries static fetch first, falls back to render if empty.
  */
-async function extractCoreCrawl(
+async function extractPageCrawl(
   url: string,
   formats: string[],
   env: Env,
@@ -116,7 +116,7 @@ async function extractCoreCrawl(
   const result: { markdown?: string; html?: string } = {};
 
   if (formats.includes("markdown")) {
-    const extracted = await extractCore(
+    const extracted = await extract(
       {
         url,
         render: false, // Try static first
@@ -128,7 +128,7 @@ async function extractCoreCrawl(
 
     // If empty, retry with render
     if (!extracted.markdown || extracted.markdown.length < 100) {
-      const rendered = await extractCore(
+      const rendered = await extract(
         {
           url,
           render: true,
