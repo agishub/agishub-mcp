@@ -8,6 +8,7 @@ import type { OperationContext } from "../types";
 import { extract as extractCore } from "./core/extract";
 import * as Q from "./core/quickactions";
 import * as S from "./schemas";
+import { freemiumNote } from "../_shared/freemium";
 
 /**
  * Free-tier cap for the MCP channel. Enough to prototype and read most articles,
@@ -34,19 +35,21 @@ export async function extract(ctx: OperationContext<z.infer<typeof S.extract>>) 
     ctx.env,
   );
 
-  if (mcp) {
-    const capped = (result as { truncated?: boolean }).truncated === true;
-    const nudge =
-      render && capped
-        ? "Free MCP tier: static fetch, capped at 8,000 chars. For JavaScript rendering and the full document, use the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004)."
-        : render
-          ? "JavaScript rendering is only on the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004). Returned the static fetch."
-          : capped
-            ? "Free MCP tier: output capped at 8,000 chars. For the full document use the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004)."
-            : undefined;
-    return nudge ? { ...result, tier: "free", note: nudge } : result;
-  }
-  return result;
+  // Apply freemium gating + upsell message
+  const capped = (result as { truncated?: boolean }).truncated === true;
+  const nudge =
+    render && capped
+      ? "Free MCP tier: static fetch, capped at 8,000 chars. For JavaScript rendering and the full document, use the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004)."
+      : render
+        ? "JavaScript rendering is only on the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004). Returned the static fetch."
+        : capped
+          ? "Free MCP tier: output capped at 8,000 chars. For the full document use the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004)."
+          : undefined;
+
+  return freemiumNote(ctx, result, {
+    truncated: capped && !!nudge,
+    upsell: nudge ?? "",
+  });
 }
 
 // ── Browser Rendering Quick Actions (published on the paid HTTP channel) ───────
