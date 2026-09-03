@@ -1,4 +1,5 @@
 {
+  "$schema": "https://registry.modelcontextprotocol.io/schema/server.json",
   "name": "com.agishub/hub",
   "displayName": "AgisHub",
   "version": "0.1.0",
