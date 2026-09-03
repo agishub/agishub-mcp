@@ -1,17 +1,12 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "com.agishub/timezone-toolkit",
-  "description": "Timezone tools for agents: convert, world clock, offset, lookup, date math, holidays, slots. x402",
-  "version": "2.1.1",
-  "repository": {
-    "url": "https://github.com/agishub/agishub-mcp",
-    "source": "github"
-  },
-  "websiteUrl": "https://agishub.com",
+  "name": "io.github.agishub/agishub",
+  "displayName": "AgisHub",
+  "version": "0.1.0",
+  "description": "One install → every tool for your AI agent. Wallet-native, pay-per-call (x402).",
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://api.agishub.com/mcp/timezone"
+      "url": "https://api.agishub.com/mcp"
     }
   ]
 }
