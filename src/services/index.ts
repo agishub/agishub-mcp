@@ -18,6 +18,7 @@ import { ragService } from "./rag";
 import { webhookService } from "./webhook";
 import { browserService } from "./browser";
 import { feedbackService } from "./feedback";
+import { crawlService } from "./crawl";
 
 export const services: ServiceDefinition[] = [
   timezoneService,
@@ -33,6 +34,7 @@ export const services: ServiceDefinition[] = [
   webhookService,
   browserService,
   feedbackService,
+  crawlService,
 ];
 
 const byId = new Map<string, Operation>();
