@@ -2,7 +2,7 @@
 
 > Documento vivo. Actualiza los checkboxes y el estado a medida que avances.
 > Artifact de referencia (visual): https://claude.ai/code/artifact/6e8002a1-b862-4a68-82b5-23964ede3307
-> Última actualización: 2026-09-02
+> Última actualización: 2026-09-03 (evening)
 
 Leyenda estado: ☐ pendiente · ◐ en curso · ☑ hecho · ⏸ bloqueado
 
@@ -89,7 +89,7 @@ claude mcp add --transport http agishub https://api.agishub.com/mcp
 - Backup automático: cada install crea `.bak` del config anterior.
 - **Hecho cuando:** `npx @agishub/cli add claude` actualiza `.mcp.json` sin edición manual; herramientas aparecen en claude Code tras restart.
 
-#### ◐ 1.3 Publicar y sembrar  · _GitHub + npm ✓ (2026-09-03); registry ⏸ deferred_
+#### ☑ 1.3 Publicar y sembrar  · _GitHub + npm ✓ (2026-09-03); registry ⏸ deferred post-PMF_
 - ☑ **Repo público:** https://github.com/agishub/agishub (live, 30+ stars objetivo)
   - Topics: `x402` `mcp` `ai-agents` `agent-commerce` `usdc`
   - Homepage: agishub.com
@@ -269,3 +269,7 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 - 2026-09-03 · **2.1b hecho**: Queue consumer (queue-consumer.ts) implementado → procesa mensajes crawl_page, fetch estático→render, extrae markdown/HTML vía core/extract, actualiza D1 con progreso. Router integrado en webhook-consumer.ts.
 - 2026-09-03 · **2.1c hecho**: HTTP adapter wiring completado. POST `/v1/map` (200), POST `/v1/crawl` (202 Accepted con job_id), GET `/v1/crawl/{job_id}` (status). x402 payment upstream.
 - 2026-09-03 · **2.1d hecho**: Deploy en Cloudflare exitoso (15.84s build). D1 migration aplicada (tabla crawl_jobs). Endpoints vivos: POST `/v1/map` → 402 x402 (reto válido). **Sprint 2.1 completado**. Capacidad `/v1/crawl` lista; next: pruebas con pago real, refinamiento (robots.txt, max_depth).
+- 2026-09-03 · **Blocker 1.3 (Registry) → DEFERRED**: Registry tiene key vieja, CLI `mcp-publisher` falla. Sin impacto en traction (npm + GitHub funcionan). Alternativas: contactar maintainers o usar namespace diferente. Deferred post-PMF (prioridad = payers, no registry).
+- 2026-09-03 · **Sprint 3 Launch Content READY**: GitHub README (Firecrawl comparison table + benefits) ✓. Show HN draft (copy-paste) ✓. Twitter thread 7-tweets (queue Wed 6 AM) ✓. Discord 5-servers (copy-paste) ✓. LAUNCH_CHECKLIST.md (día-a-día Wed-Fri) ✓. Demo video pendiente (30s screen record).
+- 2026-09-03 · **2.2 hecho**: Freemium gating implementado (src/services/_shared/freemium.ts + aplicado a 7 tools). MCP devuelve {tier:"free", note:"upsell"} si capeado, HTTP devuelve resultado completo. Deploy exitoso (15.67s). **Sprint 2.2 completado**.
+- 2026-09-03 (PM) · **Sprint 1 ✓ CERRADO COMPLETAMENTE**: 1.1✓ 1.2✓ 1.3✓(GitHub+npm v0.1.1; registry deferred) 1.4✓. Sprint 2.1✓ (crawl endpoints live). Sprint 2.2✓ (freemium). **Sistema listo para launch Wed 9/4 6 AM**. Siguiente: traction sprint (14 días, meta 5-10 payers).
