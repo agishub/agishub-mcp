@@ -152,12 +152,18 @@ GET  /v1/crawl/{job_id} → { status, completed, total, pages:[{url, markdown}] 
 - ✓ 2.1d: Deploy en vivo. D1 migration aplicada. Endpoints activos (402 x402 válido). Próximo: pruebas end-to-end con pago real, robots.txt/max_depth.
 - **Hecho cuando:** crawl de sitio de 20 páginas devuelve job_id inmediato y GET entrega 20 markdowns con pago x402.
 
-#### ☐ 2.2 Free = subconjunto de capacidad en todas las tools
+#### ☑ 2.2 Free = subconjunto de capacidad en todas las tools  · _hecho 2026-09-03_
 ```
-src/services/_shared/freemium.ts
+✓ src/services/_shared/freemium.ts
   freemiumGate(ctx, result, { capField, freeCap, upsell })  // MCP: recorta + note; HTTP: completo
+  freemiumNote(ctx, result, { truncated, upsell })          // Alternativa para fields ya capeados
 ```
-Aplicar en `handlers.ts` de web/render/ai (generaliza el patrón ya hecho en `extract`).
+Aplicado en:
+- ✓ `web/handlers.ts`: extract (8k chars)
+- ✓ `ai/handlers.ts`: summarize (1k), transcribe (5k), ocr (5k), chat (2k), extract_entities (3k JSON)
+- ✓ Deployed (15.67s build)
+
+Patrón: MCP devuelve `{...result, tier:"free", note:"nudge"}`, HTTP devuelve `{...result}` (sin campos tier/note).
 - **Hecho cuando:** toda tool cara en MCP devuelve `tier:"free"` + nudge, completa en `/v1`.
 
 #### ☐ 2.3 Dos carriles de cobro (x402 + prepago wallet-native)
