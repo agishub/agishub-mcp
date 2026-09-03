@@ -182,8 +182,13 @@ Card destacado "Compradores externos" en la consola (hoy **0**, objetivo 10).
 - **Fuente:** on-chain (`/health/payments`, `eth_getLogs`), NO la columna `wallet` de trazas.
 - **Motivo:** se descubrió que `callerWallet` (traces.ts) **no rellena `wallet` en ninguna traza** (0 en todo el histórico) — no extrae la dirección de la cabecera `X-PAYMENT`. Por eso se usa el `from` on-chain, que es fiable. `payers_ext` excluye `OWN_WALLETS` (0x448d…, pagador de test) y el propio payTo.
 
-#### ☐ 3.1b (follow-up) Arreglar captura de `wallet` en trazas
-`callerWallet`/`findAddress` en `src/traces.ts` devuelven "" para los pagos reales. Verificar contra un payload `X-PAYMENT` real (x402: `payload.authorization.from`) y corregir, para poder atribuir pagos a wallet a nivel de traza (no solo on-chain). Nice-to-have; la métrica north-star ya funciona vía on-chain.
+#### ☑ 3.1b (follow-up) Arreglar captura de `wallet` en trazas  · _hecho 2026-09-03_
+✓ Mejorada función `callerWallet()` en `src/traces.ts`:
+  - Busca `authorization.from` (EIP-3009 TransferWithAuthorization) primero
+  - Fallback a `signer` (EIP-712)
+  - Luego búsqueda recursiva tradicional
+✓ Deployed
+Métrica north-star ya funciona vía on-chain (eth_getLogs). Esta mejora permite atribuir pagos a wallet a nivel de traza (redundancia + auditoría). Próximo: verificar con primer pago real.
 
 #### ☐ 3.2 Listarte en directorios  · _(alta = usuario)_
 - x402scan "Add your API": verificar que los `/v1/*` devuelven reto **402 x402 bien formado** (`accepts`, precio, network, asset) para que el scanner indexe; luego formulario.
@@ -236,8 +241,13 @@ KPIs:
 
 **Decision point (Wed 9/11):** Si ≥3 payers → escalar. Si <1 → pivot a partnerships (LangChain, frameworks).
 
-#### ☐ 3.1b (follow-up) Arreglar captura de `wallet` en trazas
-`callerWallet`/`findAddress` en `src/traces.ts` devuelven "" para los pagos reales. Verificar contra un payload `X-PAYMENT` real (x402: `payload.authorization.from`) y corregir, para poder atribuir pagos a wallet a nivel de traza (no solo on-chain). Nice-to-have; la métrica north-star ya funciona vía on-chain.
+#### ☑ 3.1b (follow-up) Arreglar captura de `wallet` en trazas  · _hecho 2026-09-03_
+✓ Mejorada función `callerWallet()` en `src/traces.ts`:
+  - Busca `authorization.from` (EIP-3009 TransferWithAuthorization) primero
+  - Fallback a `signer` (EIP-712)
+  - Luego búsqueda recursiva tradicional
+✓ Deployed
+Métrica north-star ya funciona vía on-chain (eth_getLogs). Esta mejora permite atribuir pagos a wallet a nivel de traza (redundancia + auditoría). Próximo: verificar con primer pago real.
 
 #### ☐ 3.2 Listarte en directorios
 - x402scan "Add your API": verificar que los `/v1/*` devuelven reto **402 x402 bien formado** (`accepts`, precio, network, asset) para que el scanner indexe; luego formulario.
