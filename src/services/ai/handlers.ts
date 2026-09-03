@@ -8,6 +8,7 @@ import type { z } from "zod";
 import type { OperationContext } from "../types";
 import * as S from "./schemas";
 import { runAi } from "../../ai-budget";
+import { freemiumGate } from "../_shared/freemium";
 
 // Cheap, current instruct model for the high-volume text tools (was llama-3.3-70b).
 const LLM = "@cf/meta/llama-3.1-8b-instruct-fp8";
@@ -35,7 +36,13 @@ export async function summarize(ctx: OperationContext<z.infer<typeof S.summarize
     messages: [{ role: "system", content: system }, { role: "user", content: text }],
     max_tokens: Math.min(target * 3, 1000),
   }, "text")) as { response?: unknown };
-  return { summary: asText(r).trim() };
+  const result = { summary: asText(r).trim() };
+  // Free tier: cap summary to 1000 chars
+  return freemiumGate(ctx, result, {
+    capField: "summary",
+    freeCap: 1000,
+    upsell: "Free MCP tier: summaries capped at 1,000 chars. For longer summaries, use the paid HTTP endpoint (x402).",
+  });
 }
 
 export async function classify(ctx: OperationContext<z.infer<typeof S.classify>>) {
@@ -60,22 +67,44 @@ export async function extract_entities(ctx: OperationContext<z.infer<typeof S.ex
     messages: [{ role: "system", content: system }, { role: "user", content: text }],
     max_tokens: 500,
   }, "text")) as { response?: unknown };
+  let result: any;
   if (r?.response && typeof r.response === "object") {
-    return { entities: r.response };
+    result = { entities: r.response };
+  } else {
+    const raw = asText(r).trim();
+    try {
+      const entities = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
+      result = { entities };
+    } catch {
+      result = { raw, note: "Model did not return valid JSON." };
+    }
   }
-  const raw = asText(r).trim();
-  try {
-    const entities = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
-    return { entities };
-  } catch {
-    return { raw, note: "Model did not return valid JSON." };
+  // Free tier: cap entities JSON to 3000 chars (stringified)
+  // For the stringified JSON cap, we need a custom approach since entities is an object
+  if (ctx.transport === "mcp" && result.entities) {
+    const json = JSON.stringify(result.entities);
+    if (json.length > 3000) {
+      return {
+        entities: result.entities,
+        truncated: true,
+        tier: "free",
+        note: "Free MCP tier: entity extraction capped at 3,000 chars of JSON. For full extraction, use the paid HTTP endpoint (x402).",
+      };
+    }
   }
+  return result;
 }
 
 export async function transcribe(ctx: OperationContext<z.infer<typeof S.transcribe>>) {
   const audio = await fetchBytes(ctx.input.audio_url);
   const r = (await runAi(ctx, WHISPER, { audio }, "audio")) as { text?: string; word_count?: number };
-  return { text: (r?.text ?? "").trim(), word_count: r?.word_count };
+  const result = { text: (r?.text ?? "").trim(), word_count: r?.word_count };
+  // Free tier: cap transcription to 5000 chars
+  return freemiumGate(ctx, result, {
+    capField: "text",
+    freeCap: 5000,
+    upsell: "Free MCP tier: transcriptions capped at 5,000 chars. For longer audio, use the paid HTTP endpoint (x402).",
+  });
 }
 
 export async function ocr(ctx: OperationContext<z.infer<typeof S.ocr>>) {
@@ -83,7 +112,13 @@ export async function ocr(ctx: OperationContext<z.infer<typeof S.ocr>>) {
   const prompt = ctx.input.prompt || "Read and transcribe ALL text visible in this image. Preserve tables and layout where possible.";
   const r = (await runAi(ctx, VISION, { image, prompt, max_tokens: 1024 }, "image")) as { description?: string; response?: unknown };
   const text = (typeof r?.description === "string" ? r.description : asText(r as { response?: unknown })).trim();
-  return { text };
+  const result = { text };
+  // Free tier: cap OCR output to 5000 chars
+  return freemiumGate(ctx, result, {
+    capField: "text",
+    freeCap: 5000,
+    upsell: "Free MCP tier: OCR results capped at 5,000 chars. For longer documents, use the paid HTTP endpoint (x402).",
+  });
 }
 
 export async function embed(ctx: OperationContext<z.infer<typeof S.embed>>) {
@@ -98,7 +133,13 @@ export async function chat(ctx: OperationContext<z.infer<typeof S.chat>>) {
     ? [{ role: "system", content: system }, { role: "user", content: prompt }]
     : [{ role: "user", content: prompt }];
   const r = (await runAi(ctx, LLM, { messages, max_tokens: max_tokens ?? 512 }, "text")) as { response?: unknown };
-  return { response: asText(r).trim() };
+  const result = { response: asText(r).trim() };
+  // Free tier: cap response to 2000 chars
+  return freemiumGate(ctx, result, {
+    capField: "response",
+    freeCap: 2000,
+    upsell: "Free MCP tier: responses capped at 2,000 chars. For longer responses, use the paid HTTP endpoint (x402).",
+  });
 }
 
 export async function tts(ctx: OperationContext<z.infer<typeof S.tts>>) {
