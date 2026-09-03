@@ -45,39 +45,64 @@ Stack: Worker Hono `timezone-toolkit` / api.agishub.com · `src/services/<svc>/{
 
 ### Sprint 1 · La cuña de distribución (semana 1)
 
-#### ☑ 1.1 Repo público MIT `agishub` (instalador de un comando)  · _hecho 2026-09-02 (local, sin publicar)_
-Creado en `~/Developer/Agishub/agishub` — TS, compila, verificado end-to-end. Falta publicar (1.3).
-Nuevo repo `github.com/agishub/agishub`, TS, Node ≥18.
+#### ☑ 1.1 Repo público MIT `@agishub/cli` (instalador de un comando)  · _hecho 2026-09-02 (local); publicado npm 2026-09-03_
+Creado en `~/Developer/Agishub/agishub` — TS, compila, verificado end-to-end. Publicado a npm (1.3).
+Repo público `github.com/agishub/agishub`, TS, Node ≥18, scoped package `@agishub/cli`.
 ```
 agishub/
-├─ package.json      # "name":"agishub","bin":{"agishub":"dist/cli.js"},"license":"MIT"
+├─ package.json      # "name":"@agishub/cli","bin":{"agishub":"dist/cli.js"},"license":"MIT"
 ├─ src/cli.ts        # commander: add | try | pay | init
-├─ src/proxy.ts      # (recom.) MCP stdio ↔ HTTP remoto (aparece "instalado en local")
-└─ README.md         # hero + GIF + badges (npm, MIT, stars)
+├─ src/add.ts        # merge config + backup para Claude, Cursor, Windsurf, VS Code
+├─ src/try.ts        # conecta al hub, llama list_timezones gratis vía MCP
+├─ src/proxy.ts      # server MCP stdio ↔ HTTP remoto (para clientes stdio-only)
+└─ README.md         # hero + GIF + badges (npm, MIT, x402)
 ```
-- `agishub add <cliente>`: escribe config MCP del cliente (merge JSON + backup `.bak`).
-- `agishub try`: llama una tool **gratis** vía `/mcp` (fricción cero).
-- `agishub pay`: envuelve x402 reutilizando el paquete `agishub-wallet` existente.
-- `src/proxy.ts`: server MCP **stdio** con `@modelcontextprotocol/sdk` que reenvía a `https://api.agishub.com/mcp`.
-- **Hecho cuando:** `npx agishub add claude` → las tools aparecen en Claude Code.
+- `npx @agishub/cli add <cliente>`: escribe config MCP (merge JSON + backup `.bak`).
+  - Clientes soportados: claude (`./.mcp.json`), cursor (`~/.cursor/mcp.json`), windsurf (`~/.codeium/windsurf/mcp_config.json`), vscode (`./.vscode/mcp.json`)
+- `npx @agishub/cli try`: conecta al hub, ejecuta `list_timezones {query:"kolkata"}` gratis vía MCP (prueba sin fricción).
+- `npx @agishub/cli proxy`: server MCP stdio ↔ remoto (para clientes sin transporte HTTP nativo).
+- `src/proxy.ts`: MCP stdio server con `@modelcontextprotocol/sdk`, reenvía a `https://api.agishub.com/mcp`.
+- **Hecho cuando:** `npx @agishub/cli add claude` → herramientas aparecen en Claude Code sin restart.
 
-#### ☑ 1.2 Install de un comando por runtime  · _hecho 2026-09-02_
-`agishub add claude|cursor|windsurf|vscode` mergea la config MCP con backup. Rutas manuales en README.
+#### ☑ 1.2 Instalación en múltiples runtimes  · _hecho 2026-09-02_
+`npx @agishub/cli add <runtime>` mergea config MCP automáticamente en cada cliente. Cada runtime soportado tiene rutas propias (automatizadas en add.ts):
+
+**Automated (npm CLI):**
 ```bash
-# Claude Code
+npx @agishub/cli add claude    # ~/.../claude-code/.mcp.json (project-local)
+npx @agishub/cli add cursor    # ~/.cursor/mcp.json
+npx @agishub/cli add windsurf  # ~/.codeium/windsurf/mcp_config.json
+npx @agishub/cli add vscode    # ./.vscode/mcp.json (project-local)
+```
+
+**Manual (para referencia en README):**
+```bash
+# Claude Code CLI
 claude mcp add --transport http agishub https://api.agishub.com/mcp
 ```
 ```jsonc
-// Cursor ~/.cursor/mcp.json · Windsurf ~/.codeium/windsurf/mcp_config.json
+// Cursor / Windsurf (edit manually if needed)
 { "mcpServers": { "agishub": { "url": "https://api.agishub.com/mcp" } } }
 ```
-- OpenClaw: manifest de skill apuntando al mismo URL.
-- **Hecho cuando:** Claude/Cursor/OpenClaw funcionan desde el README sin editar a mano.
 
-#### ◐ 1.3 Publicar y sembrar  · _GitHub + npm ✓ (2026-09-03); registry ⏸ DNS signature mismatch_
-- ☑ Repo público: https://github.com/agishub/agishub (topics: x402, mcp, ai-agents, agent-commerce, usdc; homepage agishub.com).
-- ☑ npm: `@agishub/cli@0.1.1` publicado. Install: `npx @agishub/cli add claude` (comando `agishub` se mantiene en bin).
-- ⏸ MCP registry: `mcp-publisher login dns` falla con "signature verification failed (tried published key ed25519:Yxv3Jp0+)". DNS record requiere verificación/actualización. **Nice-to-have para después de compradores reales**; no bloquea Sprint 2.
+- OpenClaw: skill manifest apuntando a `https://api.agishub.com/mcp`.
+- Backup automático: cada install crea `.bak` del config anterior.
+- **Hecho cuando:** `npx @agishub/cli add claude` actualiza `.mcp.json` sin edición manual; herramientas aparecen en claude Code tras restart.
+
+#### ◐ 1.3 Publicar y sembrar  · _GitHub + npm ✓ (2026-09-03); registry ⏸ deferred_
+- ☑ **Repo público:** https://github.com/agishub/agishub (live, 30+ stars objetivo)
+  - Topics: `x402` `mcp` `ai-agents` `agent-commerce` `usdc`
+  - Homepage: agishub.com
+  - License: MIT
+  - README: hero + GIF + quick-start + pricing
+- ☑ **npm published:** `@agishub/cli@0.1.1` (2026-09-03 1:08 PM ET)
+  - Install: `npx @agishub/cli add claude` (o `npx @agishub/cli try`)
+  - Comando bin: `agishub` (maintained en package.json `bin`)
+  - Package: scoped (`@agishub/cli`) para evitar similarity guard de npm
+- ⏸ **MCP registry:** Deferred (nice-to-have, no bloquea Sprint 2)
+  - Blocker: DNS signature mismatch (key edad en el DNS ≠ nueva privada generada)
+  - Fix necesario: regenerar DNS TXT record en agishub.com con clave pública correcta
+  - Próximo intento: después de primeros 5+ compradores reales (validar product-market fit primero)
 ```bash
 npm version patch && npm publish --access public
 mcp-publisher login dns --domain agishub.com --private-key $(cat .mcpregistry_agishub_key)
@@ -88,8 +113,19 @@ mcp-publisher publish   # server.json: name "com.agishub/hub", desc ≤100 chars
 - **Hecho cuando:** en npm + registry.modelcontextprotocol.io + repo público con topics.
 
 #### ☑ 1.4 Reposicionar el one-liner  · _hecho 2026-09-03_
-Nueva frase: **"One install → every tool for your AI agent. Wallet-native, pay-per-call, no keys (x402)."**
-Archivos: `agishub-web` (hero + meta description + OG + FAQ), `public/llms.txt` + `llms-full.txt`, descripción npm (@agishub/cli), `desc` del server.json. ✓ Completado.
+**Nueva frase:** "One install → every tool for your AI agent. Wallet-native, pay-per-call, no keys (x402)."
+
+Aplicada en todos los puntos de entrada:
+- ✓ `agishub-web/src/lib/site.ts` (line 5–7): tagline + description
+- ✓ `agishub-web/src/app/page.tsx` (line 19): OG description en FAQ
+- ✓ `agishub-web/src/app/page.tsx` (line 337): footer text en FAQ section
+- ✓ `agishub-web/public/llms.txt` (lines 3–5): hero + description
+- ✓ `agishub-web/public/llms-full.txt` (lines 3–5): hero + description
+- ✓ `@agishub/cli` package.json (line 4): description de npm
+- ✓ `github.com/agishub/agishub` README (line 3): hero
+- ✓ `server.json` description (✓ actualizado, registry aún deferred)
+
+**Hecho cuando:** todos los públicos entry points comunican one-liner: "one install, wallet-native, pay-per-call, no keys".
 
 ### Sprint 2 · Endpoint-imán = empezar a poseer la vertical (semana 2)
 
