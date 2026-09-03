@@ -1,5 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Nombre del worker en Cloudflare. Se mantiene "timezone-toolkit" (invisible
+  // para usuarios, que solo ven api.agishub.com) porque renombrarlo exigiría
+  // recrear todos los secretos, cuyos valores no tenemos. Carpeta/npm/GitHub =
+  // agishub-mcp; el nombre del worker puede diferir sin problema.
   "name": "timezone-toolkit",
   "main": "src/index.ts",
   "compatibility_date": "2025-03-10",
@@ -15,7 +19,7 @@
   // and an in-process app.fetch hangs, so this is the supported way.)
   "services": [{ "binding": "SELF", "service": "timezone-toolkit" }],
   "vars": {
-    "X402_PAY_TO": "0xF41DaF0BA8D5f5915d927e005b2EB2dEd7b6feCF",
+    "X402_PAY_TO": "0x23Fc725e8EAa1c58900C6507Ba89be99a6DFc75d",
     "X402_NETWORK": "base",
     "X402_PRICE": "$0.02",
     "X402_FACILITATOR_URL": ""
@@ -24,6 +28,10 @@
   "ai": { "binding": "AI" },
   "browser": { "binding": "BROWSER" },
   "kv_namespaces": [{ "binding": "LINKS", "id": "7c51149b42224e2297ca49db0b22d758" }],
+  // Trazas de uso (todas las llamadas y respuestas) — consultables en /console.
+  "d1_databases": [
+    { "binding": "TRACES", "database_name": "agishub-traces", "database_id": "c8074d53-e34c-4ecd-87e6-dbceb54c55c8", "migrations_dir": "migrations" }
+  ],
   "vectorize": [{ "binding": "VECTORIZE", "index_name": "agishub-memory" }],
   "queues": {
     "producers": [{ "queue": "agishub-webhooks", "binding": "WEBHOOK_QUEUE" }],

@@ -114,6 +114,42 @@ export const catalog: Catalog = {
       description:
         "Fetch any public web page and return its main content as clean, token-efficient Markdown (title, description, headings, links, lists). Set render:true to execute JavaScript first for single-page apps or JS-heavy pages that would otherwise come back empty. Built for RAG and for agents that need to read the contents of a URL.",
     },
+    scrape: {
+      channels: ["http"],
+      pricing: { x402: "$0.004" },
+      visibility: "public",
+      httpPath: "scrape",
+      tags: ["web", "scrape", "selectors", "extract", "html"],
+      description:
+        "Extract specific elements from a JavaScript-rendered page by CSS selector. Give a list of selectors (e.g. 'h1', '.price', 'a.product') and get back the text and attributes of every match. Backed by a headless browser, so it works on SPAs and JS-heavy pages.",
+    },
+    links: {
+      channels: ["http"],
+      pricing: { x402: "$0.002" },
+      visibility: "public",
+      httpPath: "links",
+      tags: ["web", "links", "crawl", "urls"],
+      description:
+        "Return every hyperlink on a JavaScript-rendered page as a list of absolute URLs, with options to keep only visible links or only same-site links. Backed by a headless browser. Use it to map a site or seed a crawler.",
+    },
+    structured: {
+      channels: ["http"],
+      pricing: { x402: "$0.006" },
+      visibility: "public",
+      httpPath: "extract-json",
+      tags: ["web", "ai", "extract", "structured", "json"],
+      description:
+        "AI-powered structured extraction: give a URL plus a natural-language prompt and/or a JSON Schema, and get back clean structured JSON (e.g. product name, price, rating). Renders the page in a headless browser first, so it works on SPAs.",
+    },
+    snapshot: {
+      channels: ["http"],
+      pricing: { x402: "$0.008" },
+      visibility: "public",
+      httpPath: "snapshot",
+      tags: ["web", "snapshot", "html", "screenshot", "markdown"],
+      description:
+        "Capture several representations of a page in one call — rendered HTML plus a PNG screenshot by default, and optionally Markdown and the accessibility tree. Backed by a headless browser. Saves round-trips when an agent needs both the content and a visual of a page.",
+    },
   },
   render: {
     pdf: {
@@ -306,6 +342,15 @@ export const catalog: Catalog = {
         "Generate an image from a text prompt (returned base64-encoded PNG).",
     },
   },
+  feedback: {
+    request_feature: {
+      channels: ["mcp"],
+      visibility: "public",
+      tags: ["feedback", "feature-request", "roadmap", "support", "community"],
+      description:
+        "Request a new service, an improvement to an existing tool, or report a bug to the AgisHub team. Use this whenever the capability you need doesn't exist yet, an existing tool falls short, or something is broken — describe what you want and the use case. Free. Your request is posted to the public AgisHub roadmap and the team is notified, so agents (and their humans) can ask for new functionality directly.",
+    },
+  },
   link: {
     shorten: {
       channels: ["mcp", "http"],
@@ -315,6 +360,26 @@ export const catalog: Catalog = {
       tags: ["url", "shortener", "link"],
       description:
         "Shorten a long URL into a compact api.agishub.com/s/<code> link that redirects to the original. Codes are stored for a year.",
+    },
+  },
+  crawl: {
+    map: {
+      channels: ["http"],
+      pricing: { x402: "$0.002" },
+      visibility: "public",
+      httpPath: "map",
+      tags: ["crawl", "map", "urls", "sitemap", "discovery"],
+      description:
+        "Discover all URLs on a website instantly. Returns a list of all URLs found on the domain (or subdomains if requested), prioritizing sitemap.xml for speed or falling back to browser rendering + BFS. Respects robots.txt. Use it to seed a crawler or map a site structure.",
+    },
+    crawl: {
+      channels: ["http"],
+      pricing: { x402: "$0.006" },
+      visibility: "public",
+      httpPath: "crawl",
+      tags: ["crawl", "batch", "async", "markdown", "extraction"],
+      description:
+        "Asynchronously crawl all pages of a website. Returns a job_id immediately (202 Accepted); poll GET /v1/crawl/{job_id} to check progress and retrieve results. Extracts each page to clean Markdown or raw HTML, respects robots.txt, max_depth, and domain boundaries. Designed to replace manual scraping workflows.",
     },
   },
 };
