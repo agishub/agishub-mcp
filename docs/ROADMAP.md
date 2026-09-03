@@ -74,10 +74,10 @@ claude mcp add --transport http agishub https://api.agishub.com/mcp
 - OpenClaw: manifest de skill apuntando al mismo URL.
 - **Hecho cuando:** Claude/Cursor/OpenClaw funcionan desde el README sin editar a mano.
 
-#### ◐ 1.3 Publicar y sembrar  · _GitHub + npm ✓ (2026-09-03); registry ☐ nice-to-have_
+#### ◐ 1.3 Publicar y sembrar  · _GitHub + npm ✓ (2026-09-03); registry ⏸ DNS signature mismatch_
 - ☑ Repo público: https://github.com/agishub/agishub (topics: x402, mcp, ai-agents, agent-commerce, usdc; homepage agishub.com).
 - ☑ npm: `@agishub/cli@0.1.1` publicado. Install: `npx @agishub/cli add claude` (comando `agishub` se mantiene en bin).
-- ☐ MCP registry: `mcp-publisher login dns … && mcp-publisher publish` (server.json + DNS key). **Nice-to-have para después de compradores reales**; no bloquea Sprint 2.
+- ⏸ MCP registry: `mcp-publisher login dns` falla con "signature verification failed (tried published key ed25519:Yxv3Jp0+)". DNS record requiere verificación/actualización. **Nice-to-have para después de compradores reales**; no bloquea Sprint 2.
 ```bash
 npm version patch && npm publish --access public
 mcp-publisher login dns --domain agishub.com --private-key $(cat .mcpregistry_agishub_key)
