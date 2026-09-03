@@ -362,6 +362,26 @@ export const catalog: Catalog = {
         "Shorten a long URL into a compact api.agishub.com/s/<code> link that redirects to the original. Codes are stored for a year.",
     },
   },
+  crawl: {
+    map: {
+      channels: ["http"],
+      pricing: { x402: "$0.002" },
+      visibility: "public",
+      httpPath: "map",
+      tags: ["crawl", "map", "urls", "sitemap", "discovery"],
+      description:
+        "Discover all URLs on a website instantly. Returns a list of all URLs found on the domain (or subdomains if requested), prioritizing sitemap.xml for speed or falling back to browser rendering + BFS. Respects robots.txt. Use it to seed a crawler or map a site structure.",
+    },
+    crawl: {
+      channels: ["http"],
+      pricing: { x402: "$0.006" },
+      visibility: "public",
+      httpPath: "crawl",
+      tags: ["crawl", "batch", "async", "markdown", "extraction"],
+      description:
+        "Asynchronously crawl all pages of a website. Returns a job_id immediately (202 Accepted); poll GET /v1/crawl/{job_id} to check progress and retrieve results. Extracts each page to clean Markdown or raw HTML, respects robots.txt, max_depth, and domain boundaries. Designed to replace manual scraping workflows.",
+    },
+  },
 };
 
 export function catalogEntry(operationId: string): CatalogEntry | undefined {
