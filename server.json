@@ -1,5 +1,5 @@
 {
-  "name": "io.github.agishub/agishub",
+  "name": "com.agishub/hub",
   "displayName": "AgisHub",
   "version": "0.1.0",
   "description": "One install → every tool for your AI agent. Wallet-native, pay-per-call (x402).",
