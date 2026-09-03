@@ -25,4 +25,17 @@ interface Env {
   // the console fails closed (503) — never public. Worker secrets only.
   CONSOLE_USER?: string;
   CONSOLE_PASS?: string;
+  // D1 de trazas de uso (binding en wrangler.jsonc). Una fila por llamada a las
+  // tools: quién (IP, wallet, país, UA), cuándo, qué y la respuesta.
+  TRACES?: D1Database;
+  // feedback.request_feature: token para publicar la petición como GitHub
+  // Discussion (categoría "Ideas"). Classic PAT con `public_repo`, o fine-grained
+  // con Discussions:read+write sobre agishub/agishub-mcp. Worker secret.
+  GITHUB_TOKEN?: string;
+  // Aviso por email opcional al recibir una petición (red de seguridad sobre el
+  // "watch" de GitHub, que no notifica tus propias acciones). Si RESEND_API_KEY y
+  // FEEDBACK_EMAIL_FROM están puestos, se envía; si no, se omite.
+  RESEND_API_KEY?: string;
+  FEEDBACK_EMAIL_FROM?: string; // remitente verificado en Resend, p.ej. "AgisHub <hello@agishub.com>"
+  FEEDBACK_NOTIFY_EMAIL?: string; // destino del aviso; por defecto jmavid@gmail.com
 }

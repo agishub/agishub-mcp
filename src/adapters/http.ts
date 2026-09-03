@@ -13,6 +13,8 @@ import { buildContext } from "../context";
 import { authorize } from "../billing";
 import { recordCall, clientId } from "../analytics";
 import type { OperationContext } from "../services/types";
+import { resolveOperation } from "../services";
+import { catalogEntry } from "../catalog";
 
 function headersOf(c: Context): Record<string, string> {
   const h: Record<string, string> = {};
@@ -42,16 +44,67 @@ export function mountHttp(app: Hono<{ Bindings: Env }>): void {
       // (unpaid requests get a 402 in the middleware), so this is a paid call.
       recordCall(c.env, operationId, "http", true, clientId(ctx.headers));
       try {
-        return c.json((await operation.handler(ctx)) as Record<string, unknown>);
+        const result = await operation.handler(ctx);
+        // Async operations (crawl) return 202 Accepted instead of 200
+        const status = operationId === "crawl.crawl" ? 202 : 200;
+        return c.json(result as Record<string, unknown>, status);
       } catch (err) {
         return c.json({ error: errMsg(err) }, 400);
       }
     };
     for (const base of [`/v1/${seg}`, `/paid/${seg}`]) {
       app.post(base, run);
-      app.get(base, (c) => c.json({ usage: `POST ${base} — see /openapi.json for parameters.` }));
+      // A GET to a paid endpoint is not the productive call — it returns a
+      // self-describing doc so agents/crawlers know to POST and what it costs.
+      app.get(base, (c) =>
+        c.json(
+          {
+            method: "POST",
+            endpoint: base,
+            description: catalog.description,
+            payment: {
+              protocol: "x402",
+              price: catalog.pricing?.x402 ?? null,
+              network: "base",
+              asset: "USDC",
+            },
+            usage: `POST ${base} with a JSON body. An unpaid request returns an x402 HTTP 402 challenge; sign the USDC payment on Base and retry.`,
+            schema: "https://api.agishub.com/openapi.json",
+          },
+          200,
+          { allow: "POST" },
+        ),
+      );
     }
   }
+
+  // Special handling for crawl status endpoint: GET /v1/crawl/:job_id
+  const crawlStatusRun = async (c: Context) => {
+    const job_id = c.req.param("job_id");
+    const ctx = buildContext("http", headersOf(c), { job_id }, c.env) as OperationContext<any>;
+    ctx.operationId = "crawl.crawl_status";
+    const operation = resolveOperation("crawl.crawl_status");
+    const entry = catalogEntry("crawl.crawl_status");
+    if (!operation || !entry) {
+      return c.json({ error: "Operation not found" }, 404);
+    }
+    ctx.operation = operation;
+    ctx.catalog = entry;
+    try {
+      ctx.input = operation.schema.parse({ job_id });
+    } catch (err) {
+      return c.json({ error: errMsg(err) }, 400);
+    }
+    ctx.principal = await authorize(ctx);
+    recordCall(c.env, "crawl.crawl_status", "http", true, clientId(ctx.headers));
+    try {
+      return c.json((await operation.handler(ctx)) as Record<string, unknown>);
+    } catch (err) {
+      return c.json({ error: errMsg(err) }, 400);
+    }
+  };
+  app.get("/v1/crawl/:job_id", crawlStatusRun);
+  app.get("/paid/crawl/:job_id", crawlStatusRun);
 }
 
 export function openapi() {
@@ -80,8 +133,9 @@ export function openapi() {
       version: "2.1.0",
       description:
         "Timezone converter, world clock, date math & meeting scheduler for AI agents. Pay-per-call x402 endpoints (USDC on Base).",
-      contact: { name: "AgisHub", url: "https://github.com/agishub/agishub-mcp", email: "jmavid@gmail.com" },
+      contact: { name: "AgisHub — Support & Community", url: "https://github.com/agishub/agishub-mcp/discussions", email: "jmavid@gmail.com" },
     },
+    externalDocs: { description: "Questions, bug reports & feature requests", url: "https://github.com/agishub/agishub-mcp/discussions" },
     servers: [{ url: "https://api.agishub.com" }],
     paths,
   };

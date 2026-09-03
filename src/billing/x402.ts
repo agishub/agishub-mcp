@@ -114,8 +114,9 @@ export const x402Middleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
         description: ep.catalog.description,
       };
       for (const base of [`/v1/${ep.seg}`, `/paid/${ep.seg}`]) {
-        routes[`HEAD ${base}`] = cfg;
-        routes[`GET ${base}`] = cfg;
+        // Only POST is the productive, charged call. GET/HEAD are left ungated so a
+        // probe (browser, crawler, x402-list) reaches the self-describing GET doc
+        // (method POST + price + schema) instead of a bare 402.
         routes[`POST ${base}`] = cfg;
       }
     }
