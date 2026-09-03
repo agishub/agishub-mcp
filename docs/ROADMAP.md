@@ -167,8 +167,50 @@ Cap: KV { wallet → daily_cap_usd }; enforcement en billing/x402.ts (suma gasto
 - **Claude (código/textos):** 1.1, 1.2, 1.4, 2.1, 2.2, 3.1, 3.3.
 - **Usuario (credenciales/decisiones):** 1.3 (`npm publish` + registry + 2FA), 3.2 (alta x402scan), binding R2 y coste Browser Rendering para crawl.
 
+### Sprint 3 · Traction Sprint: Primeros Compradores (semana 3–4)
+
+#### ☐ 3.0 Distribución + adquisición de primeros pagadores  · _comienza 2026-09-03_
+**Objetivo:** 5–10 compradores pagadores en 14 días (Tue 9/3 – Wed 9/17).
+
+Canales (bajo costo, alto signal):
+- **GitHub + HN + Reddit** (orgánico): Show HN post, Reddit r/MachineLearning/LocalLLM, repo stars
+- **Twitter/X** (orgánico): Thread "Firecrawl alternative, 1/10th cost", @langchain @crewai tags
+- **Discord** (orgánico): AI agent servers (LangChain, Crew, SuperAGI)
+- **x402 directories** (orgánico): x402scan verification, x402-list.com
+- **ProductHunt** (orgánico, posible): Si ≥500 installs npm by Fri 9/6
+- **Email outreach** (targeted): 20–30 founders con custom pitch
+- **Paid retargeting** (si necesario): Google Search + Twitter ads ($300 budget if organic stalls)
+
+KPIs:
+- ✓ 5–10 wallets pagadoras (tracked: eth_getLogs + D1 payers_ext)
+- ✓ 500–1k npm installs (@agishub/cli)
+- ✓ 50–100 GitHub stars
+- ✓ 200+ HN upvotes
+- ✓ <$50 cost per payer (organic priority)
+
+**Decision point (Wed 9/11):** Si ≥3 payers → escalar. Si <1 → pivot a partnerships (LangChain, frameworks).
+
+#### ☐ 3.1b (follow-up) Arreglar captura de `wallet` en trazas
+`callerWallet`/`findAddress` en `src/traces.ts` devuelven "" para los pagos reales. Verificar contra un payload `X-PAYMENT` real (x402: `payload.authorization.from`) y corregir, para poder atribuir pagos a wallet a nivel de traza (no solo on-chain). Nice-to-have; la métrica north-star ya funciona vía on-chain.
+
+#### ☐ 3.2 Listarte en directorios
+- x402scan "Add your API": verificar que los `/v1/*` devuelven reto **402 x402 bien formado** (`accepts`, precio, network, asset) para que el scanner indexe; luego formulario.
+- x402-list.com + MCP registry (ver 1.3). Verificar `openapi.json` con `/v1/map` y `/v1/crawl`.
+- **Hecho cuando:** AgisHub aparece en x402scan con endpoints y precios.
+
+#### ☐ 3.3 Vista de control por cliente (caps + audit) — semilla del moat
+```
+Ruta /me (auth: wallet firma nonce → viem verifyMessage)
+  read-only: llamadas, gasto, últimas tx (filtrando TRACES por wallet)
+Cap: KV { wallet → daily_cap_usd }; enforcement en billing/x402.ts (suma gasto de hoy vs cap → deniega)
+```
+- **Hecho cuando:** un comprador ve su consumo firmando y fija un tope diario que el Worker respeta.
+
+#### ☐ 3.4 Una pieza de distribución (landing page)
+- Página en agishub.com + README del repo: **"Dale a tu agente 30 tools de pago en 1 comando"** + GIF de `agishub try`.
+
 ## 7. Punto de decisión (4 semanas)
-Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de distribución + profundidad sigues en ~0, esa es la señal para pivotar o pausar — no antes.
+Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de distribución + profundidad sigues en ~0 (~Wed 9/17), esa es la señal para pivotar o pausar — no antes.
 
 ## 8. Bitácora
 - 2026-09-02 · Documento creado. Split freemium de `extract` ya en producción (MCP cap 8k + nudge; `/v1/web-scraper` completo con render). Consola: cards "Ejecuciones reales" vs "Sondeos (GET)" separados; panel Pagos on-chain arreglado (transfers vía eth_getLogs, cuadra con saldo).
