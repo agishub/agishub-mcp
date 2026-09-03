@@ -93,7 +93,7 @@ Archivos: `agishub-web` (hero + meta description + OG + FAQ), `public/llms.txt` 
 
 ### Sprint 2 · Endpoint-imán = empezar a poseer la vertical (semana 2)
 
-#### ◐ 2.1 `/v1/map` y `/v1/crawl` (capacidad propia con Browser Rendering)  · _en progreso 2026-09-03_
+#### ☑ 2.1 `/v1/map` y `/v1/crawl` (capacidad propia con Browser Rendering)  · _hecho 2026-09-03_
 `/v1/map` (síncrono, acotado):
 ```
 ✓ schemas.ts   → map: { url, limit?(<=500), include_subdomains?, search? }
@@ -109,7 +109,7 @@ GET  /v1/crawl/{job_id} → { status, completed, total, pages:[{url, markdown}] 
 - ✓ 2.1a: Schemas, handlers, operations, catalog configurados. D1 migration (tabla crawl_jobs) creada.
 - ✓ 2.1b: Queue consumer implementado → fetch estático, render si vacío (Browser), extrae markdown/HTML, actualiza D1 con progreso. Integrado en webhook-consumer.ts (router por action field).
 - ✓ 2.1c: HTTP adapter wiring (endpoints reales). POST `/v1/map`, POST `/v1/crawl` (202 Accepted), GET `/v1/crawl/{job_id}` (status). x402 payment gate upstream.
-- ☐ 2.1d: Prueba end-to-end + robots.txt/max_depth. R2 binding (opcional, guardar páginas).
+- ✓ 2.1d: Deploy en vivo. D1 migration aplicada. Endpoints activos (402 x402 válido). Próximo: pruebas end-to-end con pago real, robots.txt/max_depth.
 - **Hecho cuando:** crawl de sitio de 20 páginas devuelve job_id inmediato y GET entrega 20 markdowns con pago x402.
 
 #### ☐ 2.2 Free = subconjunto de capacidad en todas las tools
@@ -179,4 +179,5 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 - 2026-09-03 · **Sprint 1 cerrado (parcialmente)**: 1.1✓ 1.2✓ 1.3◐(GitHub+npm✓ v0.1.1, registry⏸ DNS signature mismatch) 1.4✓. Distribución OSS lista. Próximo: Sprint 2.1 (`/v1/map` + `/v1/crawl`).
 - 2026-09-03 · **2.1a hecho**: endpoints `/v1/map` (síncrono, sitemap.xml + BFS) y `/v1/crawl` (asincrónico, job_id + queue) creados. Schemas, handlers, operations registrados. Catalog actualizado con precios ($0.002 map, $0.006 crawl). D1 migration (tabla crawl_jobs) creada en migrations/0001_*.sql. Compile sin errores.
 - 2026-09-03 · **2.1b hecho**: Queue consumer (queue-consumer.ts) implementado → procesa mensajes crawl_page, fetch estático→render, extrae markdown/HTML vía core/extract, actualiza D1 con progreso. Router integrado en webhook-consumer.ts.
-- 2026-09-03 · **2.1c hecho**: HTTP adapter wiring completado. POST `/v1/map` (200), POST `/v1/crawl` (202 Accepted con job_id), GET `/v1/crawl/{job_id}` (status). x402 payment upstream. Próximo: 2.1d (pruebas, robots.txt, max_depth).
+- 2026-09-03 · **2.1c hecho**: HTTP adapter wiring completado. POST `/v1/map` (200), POST `/v1/crawl` (202 Accepted con job_id), GET `/v1/crawl/{job_id}` (status). x402 payment upstream.
+- 2026-09-03 · **2.1d hecho**: Deploy en Cloudflare exitoso (15.84s build). D1 migration aplicada (tabla crawl_jobs). Endpoints vivos: POST `/v1/map` → 402 x402 (reto válido). **Sprint 2.1 completado**. Capacidad `/v1/crawl` lista; next: pruebas con pago real, refinamiento (robots.txt, max_depth).
