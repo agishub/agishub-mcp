@@ -107,9 +107,9 @@ POST /v1/crawl { url, limit, max_depth, formats:["markdown"], same_domain }
 GET  /v1/crawl/{job_id} → { status, completed, total, pages:[{url, markdown}] }
 ```
 - ✓ 2.1a: Schemas, handlers, operations, catalog configurados. D1 migration (tabla crawl_jobs) creada.
-- ☐ 2.1b: Consumer de Queue → `fetch` estático, `render` si vacío (cost), extrae markdown (`core/extract`), páginas → **R2** (binding), progreso → D1. Respeta robots.txt, max_depth, limit, dominio, concurrencia 3–5.
-- ☐ 2.1c: HTTP adapter wiring (endpoints reales). Browser Rendering tope → Queue; crawls grandes → **Cloudflare Workflows**.
-- ☐ 2.1d: Fallback anti-bot. Prueba end-to-end (crawl sitio 20 págs → markdown + pago x402).
+- ✓ 2.1b: Queue consumer implementado → fetch estático, render si vacío (Browser), extrae markdown/HTML, actualiza D1 con progreso. Integrado en webhook-consumer.ts (router por action field).
+- ☐ 2.1c: HTTP adapter wiring (endpoints reales). R2 binding para guardar páginas (opcional). Manejo de max_depth, robots.txt.
+- ☐ 2.1d: Prueba end-to-end (crawl sitio 20 págs → job_id inmediato, GET retorna status + markdowns, pago x402 por página).
 - **Hecho cuando:** crawl de sitio de 20 páginas devuelve job_id inmediato y GET entrega 20 markdowns con pago x402.
 
 #### ☐ 2.2 Free = subconjunto de capacidad en todas las tools
@@ -177,4 +177,5 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 - 2026-09-03 · **1.3 hechos (GitHub + npm)**: repo público `github.com/agishub/agishub` live + `@agishub/cli@0.1.0` en npm (scope evita guardia de similitud; comando `agishub` se mantiene en bin). Install: `npx @agishub/cli add claude`. Registry es nice-to-have para después.
 - 2026-09-03 · **1.4 hecho**: reposicionar one-liner completado en todos los archivos (agishub-web página + OG + FAQ + llms.txt; @agishub/cli description). Push agishub-web@main + agishub-mcp@x402-bazaar-discovery.
 - 2026-09-03 · **Sprint 1 cerrado (parcialmente)**: 1.1✓ 1.2✓ 1.3◐(GitHub+npm✓ v0.1.1, registry⏸ DNS signature mismatch) 1.4✓. Distribución OSS lista. Próximo: Sprint 2.1 (`/v1/map` + `/v1/crawl`).
-- 2026-09-03 · **2.1a hecho**: endpoints `/v1/map` (síncrono, sitemap.xml + BFS) y `/v1/crawl` (asincrónico, job_id + queue) creados. Schemas, handlers, operations registrados. Catalog actualizado con precios ($0.002 map, $0.006 crawl). D1 migration (tabla crawl_jobs) creada en migrations/0001_*.sql. Compile sin errores. Próximo: 2.1b (queue consumer).
+- 2026-09-03 · **2.1a hecho**: endpoints `/v1/map` (síncrono, sitemap.xml + BFS) y `/v1/crawl` (asincrónico, job_id + queue) creados. Schemas, handlers, operations registrados. Catalog actualizado con precios ($0.002 map, $0.006 crawl). D1 migration (tabla crawl_jobs) creada en migrations/0001_*.sql. Compile sin errores.
+- 2026-09-03 · **2.1b hecho**: Queue consumer (queue-consumer.ts) implementado → procesa mensajes crawl_page, fetch estático→render, extrae markdown/HTML vía core/extract, actualiza D1 con progreso. Router integrado en webhook-consumer.ts. Próximo: 2.1c (HTTP adapter wiring, endpoints reales).
