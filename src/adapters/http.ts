@@ -13,6 +13,8 @@ import { buildContext } from "../context";
 import { authorize } from "../billing";
 import { recordCall, clientId } from "../analytics";
 import type { OperationContext } from "../services/types";
+import { resolveOperation } from "../services";
+import { catalogEntry } from "../catalog";
 
 function headersOf(c: Context): Record<string, string> {
   const h: Record<string, string> = {};
@@ -42,7 +44,10 @@ export function mountHttp(app: Hono<{ Bindings: Env }>): void {
       // (unpaid requests get a 402 in the middleware), so this is a paid call.
       recordCall(c.env, operationId, "http", true, clientId(ctx.headers));
       try {
-        return c.json((await operation.handler(ctx)) as Record<string, unknown>);
+        const result = await operation.handler(ctx);
+        // Async operations (crawl) return 202 Accepted instead of 200
+        const status = operationId === "crawl.crawl" ? 202 : 200;
+        return c.json(result as Record<string, unknown>, status);
       } catch (err) {
         return c.json({ error: errMsg(err) }, 400);
       }
@@ -72,6 +77,34 @@ export function mountHttp(app: Hono<{ Bindings: Env }>): void {
       );
     }
   }
+
+  // Special handling for crawl status endpoint: GET /v1/crawl/:job_id
+  const crawlStatusRun = async (c: Context) => {
+    const job_id = c.req.param("job_id");
+    const ctx = buildContext("http", headersOf(c), { job_id }, c.env) as OperationContext<any>;
+    ctx.operationId = "crawl.crawl_status";
+    const operation = resolveOperation("crawl.crawl_status");
+    const entry = catalogEntry("crawl.crawl_status");
+    if (!operation || !entry) {
+      return c.json({ error: "Operation not found" }, 404);
+    }
+    ctx.operation = operation;
+    ctx.catalog = entry;
+    try {
+      ctx.input = operation.schema.parse({ job_id });
+    } catch (err) {
+      return c.json({ error: errMsg(err) }, 400);
+    }
+    ctx.principal = await authorize(ctx);
+    recordCall(c.env, "crawl.crawl_status", "http", true, clientId(ctx.headers));
+    try {
+      return c.json((await operation.handler(ctx)) as Record<string, unknown>);
+    } catch (err) {
+      return c.json({ error: errMsg(err) }, 400);
+    }
+  };
+  app.get("/v1/crawl/:job_id", crawlStatusRun);
+  app.get("/paid/crawl/:job_id", crawlStatusRun);
 }
 
 export function openapi() {
