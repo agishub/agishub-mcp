@@ -1,5 +1,6 @@
 /**
- * timezone-toolkit — Cloudflare Worker entrypoint (wiring only).
+ * AgisHub — Cloudflare Worker entrypoint (wiring only).
+ * 36 x402 payment-per-call services across 7 market-oriented categories.
  *
  *   POST /mcp, GET /sse           free MCP transport (adapters/mcp)
  *   POST /v1/<op>, /paid/<op>     x402 pay-per-call HTTP (adapters/http)
@@ -36,11 +37,11 @@ export class TimezoneToolkitMCP extends McpAgent {
 }
 
 // Focused endpoints — one server per capability domain. Each gets its own
-// registry entry (com.agishub/timezone-toolkit, com.agishub/web-scraper) with a
+// registry entry (com.agishub/time, com.agishub/web-scraper) with a
 // distinct remote URL, which the official registry requires and which keeps each
 // listing keyword-focused for discovery.
 export class TimezoneMCP extends McpAgent {
-  server = new McpServer({ name: "timezone-toolkit", version: "2.1.0" });
+  server = new McpServer({ name: "time", version: "2.1.0" });
   async init() {
     registerTools(this.server, this.env as Env, ["timezone"]);
   }
@@ -91,7 +92,7 @@ app.use(async (c, next) => {
   const path = new URL(c.req.url).pathname;
   const ua = c.req.header("user-agent") || "";
   // Solo superficies de cliente; saltar el warmer interno (cron vía SELF).
-  if (!shouldTrace(path) || ua === "timezone-toolkit-healthcheck/1.0") return next();
+  if (!shouldTrace(path) || ua === "agishub-healthcheck/1.0") return next();
 
   const start = Date.now();
   const method = c.req.method;
@@ -268,7 +269,7 @@ export default {
           // UA de health-probe → el middleware de trazas lo salta (ruido interno).
           await withTimeout(
             env.SELF.fetch(`${BASE_URL}/paid/now-in`, {
-              headers: { "user-agent": "timezone-toolkit-healthcheck/1.0" },
+              headers: { "user-agent": "agishub-healthcheck/1.0" },
             }),
             10000,
           );

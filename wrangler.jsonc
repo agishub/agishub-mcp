@@ -1,23 +1,21 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  // Nombre del worker en Cloudflare. Se mantiene "timezone-toolkit" (invisible
-  // para usuarios, que solo ven api.agishub.com) porque renombrarlo exigiría
-  // recrear todos los secretos, cuyos valores no tenemos. Carpeta/npm/GitHub =
-  // agishub-mcp; el nombre del worker puede diferir sin problema.
-  "name": "timezone-toolkit",
+  // Worker name: "agishub" (reflects the new taxonomy: 7 market-oriented categories,
+  // not just timezone-toolkit). Custom domains route through Cloudflare, invisible
+  // to users who see api.agishub.com. Folder/npm/GitHub = agishub-mcp.
+  "name": "agishub",
   "main": "src/index.ts",
   "compatibility_date": "2025-03-10",
   "compatibility_flags": ["nodejs_compat"],
   "routes": [
-    { "pattern": "api.agishub.com", "custom_domain": true },
-    { "pattern": "timezone-toolkit.agishub.com", "custom_domain": true }
+    { "pattern": "api.agishub.com", "custom_domain": true }
   ],
   "observability": { "enabled": true },
   "triggers": { "crons": ["* * * * *"] },
   // Self service-binding: lets the health probe / warmer call our own routes.
   // (A plain HTTP self-fetch to our custom domain is a same-zone subrequest → 522,
   // and an in-process app.fetch hangs, so this is the supported way.)
-  "services": [{ "binding": "SELF", "service": "timezone-toolkit" }],
+  "services": [{ "binding": "SELF", "service": "agishub" }],
   "vars": {
     "X402_PAY_TO": "0x23Fc725e8EAa1c58900C6507Ba89be99a6DFc75d",
     "X402_NETWORK": "base",
