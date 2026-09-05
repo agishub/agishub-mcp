@@ -3,6 +3,6 @@ import * as S from "./schemas";
 import * as H from "./handlers";
 
 export const operations = {
-  send: defineOperation(S.relay, H.webhook_relay),
-  status: defineOperation(S.status, H.webhook_status),
+  qr_code: defineOperation(S.qrCode, H.qr_code),
+  convert_units: defineOperation(S.convertUnits, H.convert_units),
 };

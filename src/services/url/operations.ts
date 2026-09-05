@@ -3,6 +3,5 @@ import * as S from "./schemas";
 import * as H from "./handlers";
 
 export const operations = {
-  send: defineOperation(S.relay, H.webhook_relay),
-  status: defineOperation(S.status, H.webhook_status),
+  shorten: defineOperation(S.shorten, H.shorten),
 };

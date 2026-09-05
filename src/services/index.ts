@@ -2,39 +2,45 @@
  * Service Registry. Loads every service and exposes operations by their canonical
  * id `<service>.<operation>`. Adding a service = import it and push it here; no
  * adapter, billing or catalog wiring needs to change.
+ * Phase 3: Reorganized by market category (7 categories), consolidated namespaces.
  */
 
 import type { Operation, ServiceDefinition } from "./types";
-import { timezoneService } from "./timezone";
-import { webService } from "./web";
-import { renderService } from "./render";
-import { utilsService } from "./utils";
-import { financeService } from "./finance";
 import { aiService } from "./ai";
-import { linkService } from "./link";
+import { webService } from "./web";
+import { timeService } from "./time";
+import { dataService } from "./data";
+import { marketService } from "./market";
 import { imageService } from "./image";
-import { cryptoService } from "./crypto";
-import { ragService } from "./rag";
+import { audioService } from "./audio";
+import { documentService } from "./document";
+import { urlService } from "./url";
+import { qrService } from "./qr";
 import { webhookService } from "./webhook";
-import { browserService } from "./browser";
+import { memoryService } from "./memory";
 import { feedbackService } from "./feedback";
-import { crawlService } from "./crawl";
 
 export const services: ServiceDefinition[] = [
-  timezoneService,
-  webService,
-  renderService,
-  utilsService,
-  financeService,
+  // AI & Inference
   aiService,
-  linkService,
+  // Search & Web
+  webService,
+  // Data & Analytics
+  timeService,
+  dataService,
+  // Market Data
+  marketService,
+  // Media & Generation
   imageService,
-  cryptoService,
-  ragService,
+  audioService,
+  documentService,
+  // Developer Tools
+  urlService,
+  qrService,
   webhookService,
-  browserService,
   feedbackService,
-  crawlService,
+  // Knowledge & Memory
+  memoryService,
 ];
 
 const byId = new Map<string, Operation>();

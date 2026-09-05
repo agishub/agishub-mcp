@@ -1,7 +1,7 @@
 /**
  * Catalog — publication + commercialization, kept separate from Operations.
- * Fase 2: Populated with category, operation, use_cases for market-first discovery.
- * OperationIds unchanged (timezone.now_in, web.extract, etc.) for backward compatibility.
+ * Phase 3: Reorganized by 7 market-first categories, consolidated namespaces.
+ * OperationIds changed to align with new service structure (e.g., timezone→time, crypto→market).
  */
 
 export type Channel = "mcp" | "http";
@@ -68,11 +68,11 @@ export const catalog: Catalog = {
       description:
         "Turn text into a numeric embedding vector for semantic search, RAG and similarity. Multilingual.",
     },
-    extract_entities: {
+    extract: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.003" },
       visibility: "public",
-      httpPath: "extract-entities",
+      httpPath: "extract",
       category: "AI & Inference",
       operation: "Extract",
       tags: ["ai", "ner", "nlp", "entity-extraction"],
@@ -91,30 +91,6 @@ export const catalog: Catalog = {
       use_cases: ["document summarization", "content condensing", "abstract generation"],
       description:
         "Summarize a block of text into a short abstract, with an optional target length. No external API key required.",
-    },
-    transcribe: {
-      channels: ["mcp", "http"],
-      pricing: { x402: "$0.006" },
-      visibility: "public",
-      httpPath: "transcribe",
-      category: "Media & Generation",
-      operation: "Transform",
-      tags: ["audio", "speech-to-text", "transcription"],
-      use_cases: ["transcribe audio", "speech-to-text", "audio conversion"],
-      description:
-        "Transcribe an audio file (given by public URL) to text. Handles mp3, wav, m4a, ogg and more.",
-    },
-    tts: {
-      channels: ["http"],
-      pricing: { x402: "$0.005" },
-      visibility: "public",
-      httpPath: "tts",
-      category: "Media & Generation",
-      operation: "Generate",
-      tags: ["audio", "text-to-speech", "voice", "generation"],
-      use_cases: ["text-to-speech", "voice generation", "audio output"],
-      description:
-        "Convert text into spoken audio (returned base64-encoded MP3), in several languages.",
     },
   },
 
@@ -158,11 +134,11 @@ export const catalog: Catalog = {
       description:
         "Return every hyperlink on a JavaScript-rendered page as a list of absolute URLs, with options to keep only visible links or only same-site links. Backed by a headless browser. Use it to map a site or seed a crawler.",
     },
-    structured: {
+    extract_structured: {
       channels: ["http"],
       pricing: { x402: "$0.006" },
       visibility: "public",
-      httpPath: "extract-json",
+      httpPath: "extract-structured",
       category: "Search & Web",
       operation: "Extract",
       tags: ["web", "ai", "extract", "structured", "json", "schema"],
@@ -182,10 +158,7 @@ export const catalog: Catalog = {
       description:
         "Capture several representations of a page in one call — rendered HTML plus a PNG screenshot by default, and optionally Markdown and the accessibility tree. Backed by a headless browser. Saves round-trips when an agent needs both the content and a visual of a page.",
     },
-  },
-
-  browser: {
-    automate: {
+    browser: {
       channels: ["http"],
       pricing: { x402: "$0.01" },
       visibility: "public",
@@ -197,9 +170,30 @@ export const catalog: Catalog = {
       description:
         "Drive a headless browser: open a URL and run an ordered list of steps — click, type, press keys, wait, extract text and screenshot. For flows the plain scraper can't reach (logins, forms, multi-step pages).",
     },
-  },
-
-  render: {
+    map: {
+      channels: ["http"],
+      pricing: { x402: "$0.004" },
+      visibility: "public",
+      httpPath: "crawl-map",
+      category: "Search & Web",
+      operation: "Discover",
+      tags: ["web", "crawl", "sitemap", "urls", "discovery"],
+      use_cases: ["discover site urls", "map site structure", "sitemap generation"],
+      description:
+        "Discover all URLs reachable from a domain within a link depth limit. Returns a flat list of absolute URLs, respects robots.txt crawl delays. Use it to map a site's structure before crawling.",
+    },
+    crawl: {
+      channels: ["http"],
+      pricing: { x402: "$0.01" },
+      visibility: "public",
+      httpPath: "crawl",
+      category: "Search & Web",
+      operation: "Fetch",
+      tags: ["web", "crawl", "fetch", "multiple-pages", "depth"],
+      use_cases: ["crawl entire sites", "batch page fetch", "deep crawling"],
+      description:
+        "Crawl multiple pages of a site, respecting link depth and domain limits. Returns async job_id; results include markdown or HTML per page. Use it to fetch and process many pages of content at once.",
+    },
     screenshot: {
       channels: ["http"],
       pricing: { x402: "$0.006" },
@@ -212,29 +206,29 @@ export const catalog: Catalog = {
       description:
         "Capture a PNG screenshot of any public URL — full page or just the viewport, at a chosen size — returned base64-encoded. Backed by a headless browser.",
     },
-    pdf: {
-      channels: ["http"],
-      pricing: { x402: "$0.008" },
+    search: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.002" },
       visibility: "public",
-      httpPath: "pdf",
-      category: "Media & Generation",
-      operation: "Generate",
-      tags: ["pdf", "render", "document", "html-to-pdf"],
-      use_cases: ["generate pdf", "html to pdf", "document creation"],
+      httpPath: "search",
+      category: "Search & Web",
+      operation: "Search",
+      tags: ["web", "search", "discovery", "query", "results", "seo"],
+      use_cases: ["web search", "research", "information discovery", "fact checking"],
       description:
-        "Render a public URL or a raw HTML string into a PDF document, returned base64-encoded. Backed by a headless browser. Use for invoices, reports, receipts and any HTML-to-PDF need.",
+        "Search the web and get a list of results with title, URL, and snippet. Powered by Jina and SearXNG (public instances, no API key required). Returns up to 20 results with ranking and relevance.",
     },
   },
 
   // ─────────────────────────────────────────────────────────
   // DATA & ANALYTICS
   // ─────────────────────────────────────────────────────────
-  timezone: {
-    now_in: {
+  time: {
+    now: {
       channels: ["mcp", "http"],
       pricing: { x402: COMMODITY },
       visibility: "public",
-      httpPath: "now-in",
+      httpPath: "time-now",
       category: "Data & Analytics",
       operation: "Fetch",
       tags: ["timezone", "clock"],
@@ -242,35 +236,23 @@ export const catalog: Catalog = {
       description:
         "Get the current local time in an IANA timezone, including the UTC offset, zone abbreviation and whether DST is in effect. Use whenever you need to know what time it is 'now' somewhere.",
     },
-    convert_timezone: {
+    convert: {
       channels: ["mcp", "http"],
       pricing: { x402: COMMODITY },
       visibility: "public",
-      httpPath: "convert-timezone",
+      httpPath: "time-convert",
       category: "Data & Analytics",
       operation: "Transform",
       tags: ["timezone", "convert"],
       use_cases: ["convert between timezones", "schedule across zones", "time calculation"],
       description:
-        "Convert a specific date/time from one IANA timezone to another. Accepts ISO 8601 or natural language ('next Tuesday 3pm'). Returns the converted datetime with its UTC offset, zone abbreviation and DST flag.",
+        "Convert a specific date/time from one IANA timezone to another (single or batch). Accepts ISO 8601 or natural language ('next Tuesday 3pm'). Returns the converted datetime with UTC offset, zone abbreviation and DST flag.",
     },
-    convert_batch: {
+    offset: {
       channels: ["mcp", "http"],
       pricing: { x402: COMMODITY },
       visibility: "public",
-      httpPath: "convert-batch",
-      category: "Data & Analytics",
-      operation: "Transform",
-      tags: ["timezone", "world-clock"],
-      use_cases: ["convert to multiple timezones", "batch timezone conversion"],
-      description:
-        "Convert a datetime to multiple target timezones in one call. Accepts ISO 8601 or natural language. Returns each conversion with UTC offset and DST flag.",
-    },
-    tz_offset: {
-      channels: ["mcp", "http"],
-      pricing: { x402: COMMODITY },
-      visibility: "public",
-      httpPath: "tz-offset",
+      httpPath: "time-offset",
       category: "Data & Analytics",
       operation: "Fetch",
       tags: ["timezone", "offset"],
@@ -278,33 +260,23 @@ export const catalog: Catalog = {
       description:
         "Get the exact UTC offset of an IANA timezone at a given instant, DST-aware. Correctly handles fractional offsets such as India +05:30 and Nepal +05:45.",
     },
-    lookup_timezone: {
+    timezones: {
       channels: ["mcp", "http"],
       pricing: { x402: COMMODITY },
       visibility: "public",
-      httpPath: "lookup-timezone",
+      httpPath: "timezones",
       category: "Data & Analytics",
       operation: "Discover",
-      tags: ["timezone", "lookup"],
+      tags: ["timezone", "lookup", "search"],
       use_cases: ["list timezones", "search timezones", "timezone lookup"],
       description:
         "List or search valid IANA timezone identifiers by city/region/country, and resolve a city/country name to its timezone(s). Use it to discover the exact identifier to pass to the other tools.",
     },
-    list_timezones: {
-      channels: ["mcp"],
-      visibility: "public",
-      category: "Data & Analytics",
-      operation: "Discover",
-      tags: ["timezone", "list"],
-      use_cases: ["list all timezones", "enumerate timezones"],
-      description:
-        "List or search valid IANA timezone identifiers, optionally filtered by a city, region or country substring (e.g. 'kolkata', 'america'). Use it to discover the exact identifier to pass to the other tools.",
-    },
-    date_math: {
+    calculate: {
       channels: ["mcp", "http"],
       pricing: { x402: COMMODITY },
       visibility: "public",
-      httpPath: "date-math",
+      httpPath: "date-calculate",
       category: "Data & Analytics",
       operation: "Compute",
       tags: ["timezone", "date-math"],
@@ -312,11 +284,11 @@ export const catalog: Catalog = {
       description:
         "Timezone-aware date arithmetic: add or subtract a duration to a datetime (days are calendar-based and DST-safe; hours and minutes are absolute), or compute the difference between two datetimes that may be in different zones.",
     },
-    find_meeting_slots: {
+    meeting_slots: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.02" },
       visibility: "public",
-      httpPath: "find-meeting-slots",
+      httpPath: "meeting-slots",
       category: "Data & Analytics",
       operation: "Compute",
       tags: ["timezone", "scheduler"],
@@ -324,11 +296,11 @@ export const catalog: Catalog = {
       description:
         "Find working-hour time slots that overlap across participants in different timezones for a meeting of a given duration, excluding weekends and (when a country is given per participant) that person's public holidays. Free tier returns at most 1 slot; the paid endpoint returns every matching slot (see 'upgrade' in the response).",
     },
-    is_holiday: {
+    holiday: {
       channels: ["mcp", "http"],
       pricing: { x402: COMMODITY },
       visibility: "public",
-      httpPath: "is-holiday",
+      httpPath: "time-holiday",
       category: "Data & Analytics",
       operation: "Fetch",
       tags: ["timezone", "holidays"],
@@ -338,12 +310,12 @@ export const catalog: Catalog = {
     },
   },
 
-  finance: {
-    convert_currency: {
+  data: {
+    currency_convert: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.001" },
       visibility: "public",
-      httpPath: "convert-currency",
+      httpPath: "currency-convert",
       category: "Data & Analytics",
       operation: "Transform",
       tags: ["currency", "fx", "convert", "money", "exchange"],
@@ -351,14 +323,11 @@ export const catalog: Catalog = {
       description:
         "Convert an amount between currencies using live daily exchange rates (ISO 4217 codes, e.g. USD, EUR, GBP, JPY). Returns the converted amount and the rate used.",
     },
-  },
-
-  utils: {
     convert_units: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.001" },
       visibility: "public",
-      httpPath: "convert-units",
+      httpPath: "units-convert",
       category: "Data & Analytics",
       operation: "Transform",
       tags: ["units", "convert", "measurement", "math"],
@@ -366,25 +335,13 @@ export const catalog: Catalog = {
       description:
         "Convert a value between units of the same category: length, mass, volume, speed, area, digital storage, time, and temperature (Celsius/Fahrenheit/Kelvin).",
     },
-    qr_code: {
-      channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
-      visibility: "public",
-      httpPath: "qr-code",
-      category: "Developer Tools",
-      operation: "Generate",
-      tags: ["qr", "generator", "image", "svg", "barcode"],
-      use_cases: ["generate qr codes", "qr generation", "barcode creation"],
-      description:
-        "Generate a QR code for any text or URL. Returns an inline SVG plus a data URI, with selectable size, quiet-zone margin and error-correction level.",
-    },
   },
 
   // ─────────────────────────────────────────────────────────
   // MARKET DATA
   // ─────────────────────────────────────────────────────────
-  crypto: {
-    price: {
+  market: {
+    crypto_price: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.001" },
       visibility: "public",
@@ -416,15 +373,87 @@ export const catalog: Catalog = {
     },
   },
 
+  audio: {
+    transcribe: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.006" },
+      visibility: "public",
+      httpPath: "audio-transcribe",
+      category: "Media & Generation",
+      operation: "Transform",
+      tags: ["audio", "speech-to-text", "transcription"],
+      use_cases: ["transcribe audio", "speech-to-text", "audio conversion"],
+      description:
+        "Transcribe an audio file (given by public URL) to text. Handles mp3, wav, m4a, ogg and more.",
+    },
+    speak: {
+      channels: ["http"],
+      pricing: { x402: "$0.005" },
+      visibility: "public",
+      httpPath: "audio-speak",
+      category: "Media & Generation",
+      operation: "Generate",
+      tags: ["audio", "text-to-speech", "voice", "generation"],
+      use_cases: ["text-to-speech", "voice generation", "audio output"],
+      description:
+        "Convert text into spoken audio (returned base64-encoded MP3), in several languages.",
+    },
+  },
+
+  document: {
+    pdf: {
+      channels: ["http"],
+      pricing: { x402: "$0.008" },
+      visibility: "public",
+      httpPath: "pdf",
+      category: "Media & Generation",
+      operation: "Generate",
+      tags: ["pdf", "render", "document", "html-to-pdf"],
+      use_cases: ["generate pdf", "html to pdf", "document creation"],
+      description:
+        "Render a public URL or a raw HTML string into a PDF document, returned base64-encoded. Backed by a headless browser. Use for invoices, reports, receipts and any HTML-to-PDF need.",
+    },
+  },
+
   // ─────────────────────────────────────────────────────────
   // DEVELOPER TOOLS
   // ─────────────────────────────────────────────────────────
+  url: {
+    shorten: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "shorten",
+      category: "Developer Tools",
+      operation: "Transform",
+      tags: ["url", "shortener", "link", "redirect"],
+      use_cases: ["shorten urls", "link shortening", "url compression"],
+      description:
+        "Shorten a long URL into a compact api.agishub.com/s/<code> link that redirects to the original. Codes are stored for a year.",
+    },
+  },
+
+  qr: {
+    generate: {
+      channels: ["mcp", "http"],
+      pricing: { x402: "$0.001" },
+      visibility: "public",
+      httpPath: "qr-generate",
+      category: "Developer Tools",
+      operation: "Generate",
+      tags: ["qr", "generator", "image", "svg", "barcode"],
+      use_cases: ["generate qr codes", "qr generation", "barcode creation"],
+      description:
+        "Generate a QR code for any text or URL. Returns an inline SVG plus a data URI, with selectable size, quiet-zone margin and error-correction level.",
+    },
+  },
+
   webhook: {
-    relay: {
+    send: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.002" },
       visibility: "public",
-      httpPath: "webhook-relay",
+      httpPath: "webhook-send",
       category: "Developer Tools",
       operation: "Connect",
       tags: ["webhook", "delivery", "queue", "retry", "integration"],
@@ -446,21 +475,6 @@ export const catalog: Catalog = {
     },
   },
 
-  link: {
-    shorten: {
-      channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
-      visibility: "public",
-      httpPath: "shorten",
-      category: "Developer Tools",
-      operation: "Transform",
-      tags: ["url", "shortener", "link", "redirect"],
-      use_cases: ["shorten urls", "link shortening", "url compression"],
-      description:
-        "Shorten a long URL into a compact api.agishub.com/s/<code> link that redirects to the original. Codes are stored for a year.",
-    },
-  },
-
   feedback: {
     request_feature: {
       channels: ["mcp"],
@@ -477,12 +491,12 @@ export const catalog: Catalog = {
   // ─────────────────────────────────────────────────────────
   // KNOWLEDGE & MEMORY
   // ─────────────────────────────────────────────────────────
-  rag: {
-    memory_upsert: {
+  memory: {
+    store: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.001" },
       visibility: "public",
-      httpPath: "memory-upsert",
+      httpPath: "memory-store",
       category: "Knowledge & Memory",
       operation: "Store",
       tags: ["memory", "rag", "vector", "store", "knowledge"],
@@ -490,7 +504,7 @@ export const catalog: Catalog = {
       description:
         "Store a piece of text in a persistent, searchable memory collection (namespace). Embedded and indexed for later semantic recall.",
     },
-    memory_search: {
+    search: {
       channels: ["mcp", "http"],
       pricing: { x402: "$0.001" },
       visibility: "public",

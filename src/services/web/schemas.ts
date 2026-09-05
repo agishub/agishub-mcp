@@ -62,3 +62,85 @@ export const snapshot = z.object({
   width: z.number().int().positive().optional().describe("Viewport width in pixels (default 1280)."),
   height: z.number().int().positive().optional().describe("Viewport height in pixels (default 800)."),
 });
+
+// ── Consolidated from browser, crawl, render ──────────────────────────────
+
+const step = z.object({
+  action: z.enum(["click", "type", "press", "wait", "extract_text", "screenshot"]).describe("What to do."),
+  selector: z.string().optional().describe("CSS selector (for click/type/wait-for/extract_text)."),
+  text: z.string().optional().describe("Text to type (type), or key to press (press, e.g. 'Enter')."),
+  ms: z.number().int().min(0).max(10000).optional().describe("Milliseconds to wait (wait, when no selector given)."),
+});
+
+export const automate = z.object({
+  url: z.string().url().describe("Starting URL to open in a headless browser."),
+  steps: z.array(step).max(20).optional().describe("Ordered actions to perform after the page loads."),
+  screenshot: z.boolean().optional().describe("Also return a final full-page PNG screenshot (base64)."),
+});
+
+export const map = z.object({
+  url: z.string().url().describe("Root domain URL to map (e.g., https://example.com)."),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(500)
+    .optional()
+    .describe("Maximum URLs to return (default 100, max 500). Respects robots.txt crawl-delay."),
+  include_subdomains: z
+    .boolean()
+    .optional()
+    .describe("Include URLs from subdomains (default false, same domain only)."),
+  search: z
+    .string()
+    .optional()
+    .describe("Optional regex or plain string to filter results (case-insensitive)."),
+});
+
+export const crawl = z.object({
+  url: z.string().url().describe("Root domain URL to crawl (e.g., https://example.com)."),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(1000)
+    .optional()
+    .describe("Maximum pages to crawl (default 100, max 1000). Returns 202 with job_id for async processing."),
+  max_depth: z
+    .number()
+    .int()
+    .positive()
+    .max(10)
+    .optional()
+    .describe("Maximum link depth from root (default 2, max 10). Depth 0 = root only, depth 1 = root + direct children."),
+  formats: z
+    .array(z.enum(["markdown", "html"]))
+    .optional()
+    .describe("Output formats per page (default ['markdown']). 'html' adds raw HTML."),
+  same_domain: z
+    .boolean()
+    .optional()
+    .describe("Only crawl URLs on the same domain (default true). Subdomain links are excluded when false."),
+});
+
+export const screenshot = z.object({
+  url: z.string().url().describe("Public http/https URL to capture."),
+  full_page: z.boolean().optional().describe("Capture the entire scrollable page instead of just the viewport (default false)."),
+  width: z.number().int().positive().optional().describe("Viewport width in pixels (default 1280)."),
+  height: z.number().int().positive().optional().describe("Viewport height in pixels (default 800)."),
+});
+
+export const search = z.object({
+  query: z
+    .string()
+    .min(1)
+    .max(200)
+    .describe("Search query string (e.g., 'best restaurants in NYC', 'weather forecast')."),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(20)
+    .optional()
+    .describe("Maximum results to return (default 10, max 20)."),
+});
