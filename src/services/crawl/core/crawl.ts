@@ -3,7 +3,6 @@
  * Returns job_id immediately, processes in background via queue.
  */
 
-import type { Env } from "../../../types";
 import { mapCore } from "./map";
 
 interface CrawlInput {
@@ -21,6 +20,8 @@ interface CrawlJob {
   created_at: string;
   started_at?: string;
   completed_at?: string;
+  /** Marca de la última página procesada por el consumidor de la cola. */
+  crawled_at?: string;
   progress: {
     crawled: number;
     total: number;
