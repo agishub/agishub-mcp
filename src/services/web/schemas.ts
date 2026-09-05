@@ -130,17 +130,3 @@ export const screenshot = z.object({
   height: z.number().int().positive().optional().describe("Viewport height in pixels (default 800)."),
 });
 
-export const search = z.object({
-  query: z
-    .string()
-    .min(1)
-    .max(200)
-    .describe("Search query string (e.g., 'best restaurants in NYC', 'weather forecast')."),
-  limit: z
-    .number()
-    .int()
-    .min(1)
-    .max(20)
-    .optional()
-    .describe("Maximum results to return (default 10, max 20)."),
-});

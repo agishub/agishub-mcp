@@ -107,6 +107,13 @@ export const catalog: Catalog = {
   // ─────────────────────────────────────────────────────────
   // SEARCH & WEB
   // ─────────────────────────────────────────────────────────
+  // Nota: no hay operación `search`. Se publicó una el 2026-09-05 sobre
+  // backends inexistentes (jina.ai/api/search da 404, s.jina.ai exige clave
+  // desde entonces, y las tres instancias SearXNG no resuelven), así que cobraba
+  // $0.002 y devolvía error siempre. No hay búsqueda web fiable sin API key: si
+  // se reintroduce, hacerlo sobre un proveedor con clave (Brave/Serper/Tavily)
+  // y verificarlo con una llamada real contra el Worker desplegado antes de
+  // publicarlo.
   web: {
     extract: {
       channels: ["mcp", "http"],
@@ -215,21 +222,6 @@ export const catalog: Catalog = {
       use_cases: ["page screenshot", "visual capture", "full-page render"],
       description:
         "Capture a PNG screenshot of any public URL — full page or just the viewport, at a chosen size — returned base64-encoded. Backed by a headless browser.",
-    },
-    search: {
-      channels: ["mcp", "http"],
-      pricing: { x402: "$0.002" },
-      visibility: "public",
-      httpPath: "search",
-      // `search` over MCP is memory.search; web search gets its own tool name so
-      // both stay reachable in the single flat MCP namespace.
-      mcpName: "web_search",
-      category: "Search & Web",
-      operation: "Search",
-      tags: ["web", "search", "discovery", "query", "results", "seo"],
-      use_cases: ["web search", "research", "information discovery", "fact checking"],
-      description:
-        "Search the web and get a list of results with title, URL, and snippet. Powered by Jina and SearXNG (public instances, no API key required). Returns up to 20 results with ranking and relevance.",
     },
   },
 

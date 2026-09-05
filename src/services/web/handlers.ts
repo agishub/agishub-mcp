@@ -14,7 +14,6 @@ import { automate, type Step } from "../browser/core/run";
 import { mapCore } from "../crawl/core/map";
 import { crawlCore, getCrawlStatus } from "../crawl/core/crawl";
 import * as B from "../render/core/browser";
-import { search as searchWeb } from "./core/search";
 
 /**
  * Free-tier cap for the MCP channel. Enough to prototype and read most articles,
@@ -137,7 +136,3 @@ export async function extract_structured(ctx: OperationContext<z.infer<typeof S.
   return Q.structured(ctx.input, ctx.env);
 }
 
-export async function search(ctx: OperationContext<z.infer<typeof S.search>>) {
-  const { query, limit = 10 } = ctx.input;
-  return searchWeb(query, limit);
-}
