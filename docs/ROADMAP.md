@@ -166,6 +166,24 @@ Aplicado en:
 Patrón: MCP devuelve `{...result, tier:"free", note:"nudge"}`, HTTP devuelve `{...result}` (sin campos tier/note).
 - **Hecho cuando:** toda tool cara en MCP devuelve `tier:"free"` + nudge, completa en `/v1`.
 
+#### ☑ 2.2.1 Taxonomy Redesign Fase 1 (descubrimiento + metadatos)  · _hecho 2026-09-05_
+**Objetivo:** Reorganizar catálogo de 14 espacios técnicos → 7 categorías de mercado para descubrimiento.
+
+**Fase 1 (now):** Interface + backward compatible
+- ✓ Actualizada `CatalogEntry` en `src/catalog.ts` con 3 campos nuevos:
+  - `category`: "AI & Inference" | "Search & Web" | "Data & Analytics" | "Market Data" | "Media & Generation" | "Developer Tools" | "Knowledge & Memory"
+  - `operation`: "Fetch" | "Extract" | "Analyze" | "Transform" | "Generate" | "Retrieve" | "Store" | "Compute" | "Connect" | "Act"
+  - `use_cases`: string[] para semantic discovery
+- ✓ Deployed (no cambios en operationIds, backward compatible 100%)
+- ✓ Valores no aún poblados; listos para Fase 2
+
+**Fase 2 (post-launch):** Población de valores + reorganización visual
+- Próximo: Completar todos los entries con category/operation/use_cases
+- Luego: Reorganizar UI de backoffice.ts para agrupar por 7 categorías
+- Luego: Renombrar operationIds (timezone.* → time.*, etc.)
+
+**Hecho cuando:** operationIds + rutas sin cambios, schema expandido, deploy exitoso.
+
 #### ☐ 2.3 Dos carriles de cobro (x402 + prepago wallet-native)
 ```
 POST /v1/credits/topup → pago x402 grande acredita saldo en D1 (credits:{wallet,balance})
@@ -283,3 +301,4 @@ Objetivo del periodo: **10 compradores externos**. Si tras un esfuerzo real de d
 - 2026-09-03 · **Sprint 3 Launch Content READY**: GitHub README (Firecrawl comparison table + benefits) ✓. Show HN draft (copy-paste) ✓. Twitter thread 7-tweets (queue Wed 6 AM) ✓. Discord 5-servers (copy-paste) ✓. LAUNCH_CHECKLIST.md (día-a-día Wed-Fri) ✓. Demo video pendiente (30s screen record).
 - 2026-09-03 · **2.2 hecho**: Freemium gating implementado (src/services/_shared/freemium.ts + aplicado a 7 tools). MCP devuelve {tier:"free", note:"upsell"} si capeado, HTTP devuelve resultado completo. Deploy exitoso (15.67s). **Sprint 2.2 completado**.
 - 2026-09-03 (PM) · **Sprint 1 ✓ CERRADO COMPLETAMENTE**: 1.1✓ 1.2✓ 1.3✓(GitHub+npm v0.1.1; registry deferred) 1.4✓. Sprint 2.1✓ (crawl endpoints live). Sprint 2.2✓ (freemium). **Sistema listo para launch Wed 9/4 6 AM**. Siguiente: traction sprint (14 días, meta 5-10 payers).
+- 2026-09-05 · **2.2.1 Taxonomy Redesign Fase 1 ✓**: Expandida `CatalogEntry` interface con category, operation, use_cases (no poblados aún, valores undefined para todas las entries). Deploy exitoso. Backward compatible 100% (operationIds + rutas sin cambios). Fase 2 (población + reorganización UI + renombramiento) deferred post-launch.
