@@ -15,6 +15,13 @@ export interface CatalogEntry {
   tags?: string[];
   /** HTTP path segment for /v1/<httpPath> and /paid/<httpPath>. */
   httpPath?: string;
+  /**
+   * MCP tool name, when it must differ from the operation name. MCP exposes one
+   * flat namespace, so two services sharing an operation name silently collide
+   * and only one survives in tools/list — set this on the newcomer to keep both
+   * reachable. Defaults to the operation name.
+   */
+  mcpName?: string;
   /** Market-oriented category (7 categories for discovery). */
   category?: "AI & Inference" | "Search & Web" | "Data & Analytics" | "Market Data" | "Media & Generation" | "Developer Tools" | "Knowledge & Memory";
   /** Operation type (verb: Fetch, Extract, Analyze, etc.). */
@@ -73,6 +80,9 @@ export const catalog: Catalog = {
       pricing: { x402: "$0.003" },
       visibility: "public",
       httpPath: "extract",
+      // `extract` over MCP is the web scraper (its name since launch); this one
+      // keeps the entity-extraction name existing clients already call.
+      mcpName: "extract_entities",
       category: "AI & Inference",
       operation: "Extract",
       tags: ["ai", "ner", "nlp", "entity-extraction"],
@@ -211,6 +221,9 @@ export const catalog: Catalog = {
       pricing: { x402: "$0.002" },
       visibility: "public",
       httpPath: "search",
+      // `search` over MCP is memory.search; web search gets its own tool name so
+      // both stay reachable in the single flat MCP namespace.
+      mcpName: "web_search",
       category: "Search & Web",
       operation: "Search",
       tags: ["web", "search", "discovery", "query", "results", "seo"],

@@ -9,3 +9,6 @@ worker-configuration.d.ts
 
 # back-office privado (no publicar): copia local de respaldo
 src/private/backoffice.local.ts
+
+# Copias locales del backoffice privado (no debe salir al repo público)
+.backups/
