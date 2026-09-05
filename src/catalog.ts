@@ -16,6 +16,12 @@ export interface CatalogEntry {
   tags?: string[];
   /** HTTP path segment for /v1/<httpPath> and /paid/<httpPath>. */
   httpPath?: string;
+  /** Market-oriented category (for Fase 1 discovery). */
+  category?: "AI & Inference" | "Search & Web" | "Data & Analytics" | "Market Data" | "Media & Generation" | "Developer Tools" | "Knowledge & Memory";
+  /** Operation type (for Fase 1 discovery). */
+  operation?: "Search" | "Fetch" | "Discover" | "Extract" | "Analyze" | "Transform" | "Generate" | "Retrieve" | "Store" | "Compute" | "Connect" | "Act";
+  /** Use cases (for Fase 1 discovery). */
+  use_cases?: string[];
 }
 
 export type Catalog = Record<string, Record<string, CatalogEntry>>;
