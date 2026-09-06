@@ -8,7 +8,8 @@
   "compatibility_date": "2025-03-10",
   "compatibility_flags": ["nodejs_compat"],
   "routes": [
-    { "pattern": "api.agishub.com", "custom_domain": true }
+    { "pattern": "api.agishub.com", "custom_domain": true },
+    { "pattern": "timezone-toolkit.agishub.com", "custom_domain": true }
   ],
   "observability": { "enabled": true },
   "triggers": { "crons": ["* * * * *"] },
