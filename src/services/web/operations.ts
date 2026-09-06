@@ -18,5 +18,4 @@ export const operations = {
   map: defineOperation(S.map, H.map),
   crawl: defineOperation(S.crawl, H.crawl),
   screenshot: defineOperation(S.screenshot, H.screenshot),
-  search: defineOperation(S.search, H.search),
 };

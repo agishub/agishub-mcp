@@ -6,7 +6,6 @@
  * 3. Deduplicate, filter by domain/subdomains, apply regex filter
  */
 
-import type { Env } from "../../../types";
 
 interface MapInput {
   url: string;

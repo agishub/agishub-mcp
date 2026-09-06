@@ -22,7 +22,7 @@ const httpBySeg = new Map<string, string>(); // path segment -> operation id
 for (const [svc, ops] of Object.entries(catalog)) {
   for (const [name, entry] of Object.entries(ops)) {
     const id = `${svc}.${name}`;
-    if (entry.channels.includes("mcp")) mcpByName.set(name, id);
+    if (entry.channels.includes("mcp")) mcpByName.set(entry.mcpName ?? name, id);
     if (entry.channels.includes("http")) httpBySeg.set(entry.httpPath ?? name.replace(/_/g, "-"), id);
   }
 }

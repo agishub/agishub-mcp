@@ -15,6 +15,13 @@ export interface CatalogEntry {
   tags?: string[];
   /** HTTP path segment for /v1/<httpPath> and /paid/<httpPath>. */
   httpPath?: string;
+  /**
+   * MCP tool name, when it must differ from the operation name. MCP exposes one
+   * flat namespace, so two services sharing an operation name silently collide
+   * and only one survives in tools/list — set this on the newcomer to keep both
+   * reachable. Defaults to the operation name.
+   */
+  mcpName?: string;
   /** Market-oriented category (7 categories for discovery). */
   category?: "AI & Inference" | "Search & Web" | "Data & Analytics" | "Market Data" | "Media & Generation" | "Developer Tools" | "Knowledge & Memory";
   /** Operation type (verb: Fetch, Extract, Analyze, etc.). */
@@ -73,6 +80,9 @@ export const catalog: Catalog = {
       pricing: { x402: "$0.003" },
       visibility: "public",
       httpPath: "extract",
+      // `extract` over MCP is the web scraper (its name since launch); this one
+      // keeps the entity-extraction name existing clients already call.
+      mcpName: "extract_entities",
       category: "AI & Inference",
       operation: "Extract",
       tags: ["ai", "ner", "nlp", "entity-extraction"],
@@ -97,6 +107,13 @@ export const catalog: Catalog = {
   // ─────────────────────────────────────────────────────────
   // SEARCH & WEB
   // ─────────────────────────────────────────────────────────
+  // Nota: no hay operación `search`. Se publicó una el 2026-09-05 sobre
+  // backends inexistentes (jina.ai/api/search da 404, s.jina.ai exige clave
+  // desde entonces, y las tres instancias SearXNG no resuelven), así que cobraba
+  // $0.002 y devolvía error siempre. No hay búsqueda web fiable sin API key: si
+  // se reintroduce, hacerlo sobre un proveedor con clave (Brave/Serper/Tavily)
+  // y verificarlo con una llamada real contra el Worker desplegado antes de
+  // publicarlo.
   web: {
     extract: {
       channels: ["mcp", "http"],
@@ -205,18 +222,6 @@ export const catalog: Catalog = {
       use_cases: ["page screenshot", "visual capture", "full-page render"],
       description:
         "Capture a PNG screenshot of any public URL — full page or just the viewport, at a chosen size — returned base64-encoded. Backed by a headless browser.",
-    },
-    search: {
-      channels: ["mcp", "http"],
-      pricing: { x402: "$0.002" },
-      visibility: "public",
-      httpPath: "search",
-      category: "Search & Web",
-      operation: "Search",
-      tags: ["web", "search", "discovery", "query", "results", "seo"],
-      use_cases: ["web search", "research", "information discovery", "fact checking"],
-      description:
-        "Search the web and get a list of results with title, URL, and snippet. Powered by Jina and SearXNG (public instances, no API key required). Returns up to 20 results with ranking and relevance.",
     },
   },
 

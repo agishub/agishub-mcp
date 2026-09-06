@@ -8,6 +8,12 @@ import { mapCore } from "./core/map";
 import { crawlCore, getCrawlStatus } from "./core/crawl";
 import * as S from "./schemas";
 
+/** Las operaciones de crawl necesitan bindings (cola, D1); en stdio no los hay. */
+function requireEnv(env: Env | undefined): Env {
+  if (!env) throw new Error("Esta operación necesita los bindings del Worker y no está disponible por stdio.");
+  return env;
+}
+
 export async function map(ctx: OperationContext<z.infer<typeof S.map>>) {
   const { url, limit = 100, include_subdomains = false, search } = ctx.input;
 
@@ -18,7 +24,7 @@ export async function map(ctx: OperationContext<z.infer<typeof S.map>>) {
       include_subdomains,
       search,
     },
-    ctx.env,
+    requireEnv(requireEnv(ctx.env)),
   );
 
   return {
@@ -42,7 +48,7 @@ export async function crawl(ctx: OperationContext<z.infer<typeof S.crawl>>) {
       formats,
       same_domain,
     },
-    ctx.env,
+    requireEnv(requireEnv(ctx.env)),
   );
 
   return {
@@ -58,7 +64,7 @@ export async function crawl(ctx: OperationContext<z.infer<typeof S.crawl>>) {
 export async function crawlStatus(ctx: OperationContext<z.infer<typeof S.crawlStatus>>) {
   const { job_id } = ctx.input;
 
-  const status = await getCrawlStatus(job_id, ctx.env);
+  const status = await getCrawlStatus(job_id, requireEnv(ctx.env));
 
   if (!status) {
     return {

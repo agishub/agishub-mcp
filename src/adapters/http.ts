@@ -129,7 +129,7 @@ export function openapi() {
   return {
     openapi: "3.1.0",
     info: {
-      title: "timezone-toolkit",
+      title: "AgisHub",
       version: "2.1.0",
       description:
         "Timezone converter, world clock, date math & meeting scheduler for AI agents. Pay-per-call x402 endpoints (USDC on Base).",

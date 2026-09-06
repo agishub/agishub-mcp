@@ -8,7 +8,6 @@
 
 import { extract } from "../../web/core/extract";
 import { updateCrawlJob, getCrawlStatus } from "./crawl";
-import type { Env } from "../../../types";
 
 export interface CrawlPageMessage {
   action: "crawl_page";
@@ -41,7 +40,9 @@ export async function handleCrawlQueueMessage(
       p.url === url
         ? {
             ...p,
-            status: "done",
+            // as const: dentro del map el literal se ensancha a string y deja de
+            // encajar en la unión de estados de la página.
+            status: "done" as const,
             markdown: formats.includes("markdown") ? extracted.markdown : undefined,
             html: formats.includes("html") ? extracted.html : undefined,
           }
@@ -79,7 +80,7 @@ export async function handleCrawlQueueMessage(
         p.url === url
           ? {
               ...p,
-              status: "error",
+              status: "error" as const,
               error,
             }
           : p,

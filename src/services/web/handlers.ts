@@ -14,7 +14,12 @@ import { automate, type Step } from "../browser/core/run";
 import { mapCore } from "../crawl/core/map";
 import { crawlCore, getCrawlStatus } from "../crawl/core/crawl";
 import * as B from "../render/core/browser";
-import { search as searchWeb } from "./core/search";
+
+/** Las operaciones de crawl necesitan bindings (cola, D1); en stdio no los hay. */
+function requireEnv(env: Env | undefined): Env {
+  if (!env) throw new Error("Esta operación necesita los bindings del Worker y no está disponible por stdio.");
+  return env;
+}
 
 /**
  * Free-tier cap for the MCP channel. Enough to prototype and read most articles,
@@ -38,7 +43,7 @@ export async function extract(ctx: OperationContext<z.infer<typeof S.extract>>) 
 
   const result = await extractCore(
     { url, render: mcp ? false : render, include_links, include_images, max_chars: effectiveMax },
-    ctx.env,
+    requireEnv(requireEnv(ctx.env)),
   );
 
   // Apply freemium gating + upsell message
@@ -93,7 +98,7 @@ export async function map(ctx: OperationContext<z.infer<typeof S.map>>) {
       include_subdomains,
       search,
     },
-    ctx.env,
+    requireEnv(requireEnv(ctx.env)),
   );
 
   return {
@@ -116,7 +121,7 @@ export async function crawl(ctx: OperationContext<z.infer<typeof S.crawl>>) {
       formats,
       same_domain,
     },
-    ctx.env,
+    requireEnv(requireEnv(ctx.env)),
   );
 
   return {
@@ -137,7 +142,3 @@ export async function extract_structured(ctx: OperationContext<z.infer<typeof S.
   return Q.structured(ctx.input, ctx.env);
 }
 
-export async function search(ctx: OperationContext<z.infer<typeof S.search>>) {
-  const { query, limit = 10 } = ctx.input;
-  return searchWeb(query, limit);
-}
