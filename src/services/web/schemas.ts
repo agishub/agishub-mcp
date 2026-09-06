@@ -84,9 +84,9 @@ export const map = z.object({
     .number()
     .int()
     .positive()
-    .max(500)
+    .max(200)
     .optional()
-    .describe("Maximum URLs to return (default 100, max 500). Respects robots.txt crawl-delay."),
+    .describe("Maximum URLs to return (default 100, max 200 per call). Respects robots.txt crawl-delay."),
   include_subdomains: z
     .boolean()
     .optional()
@@ -103,9 +103,9 @@ export const crawl = z.object({
     .number()
     .int()
     .positive()
-    .max(1000)
+    .max(100)
     .optional()
-    .describe("Maximum pages to crawl (default 100, max 1000). Returns 202 with job_id for async processing."),
+    .describe("Maximum pages to crawl (default 100, max 100 per call). Returns 202 with job_id for async processing. For larger sites, issue several calls: each one is priced the same, so 1.000 pages cost ten calls."),
   max_depth: z
     .number()
     .int()

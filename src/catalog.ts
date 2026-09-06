@@ -32,7 +32,9 @@ export interface CatalogEntry {
 
 export type Catalog = Record<string, Record<string, CatalogEntry>>;
 
-const COMMODITY = "$0.001";
+// Suelo del catálogo. Subido de $0.001 a $0.01: a la escala anterior un cobro
+// real quedaba por debajo del ruido y no se distinguía en el panel de pagos.
+const COMMODITY = "$0.01";
 
 export const catalog: Catalog = {
   // ─────────────────────────────────────────────────────────
@@ -41,7 +43,7 @@ export const catalog: Catalog = {
   ai: {
     chat: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.003" },
+      pricing: { x402: "$0.02" },
       visibility: "public",
       httpPath: "chat",
       category: "AI & Inference",
@@ -53,7 +55,7 @@ export const catalog: Catalog = {
     },
     classify: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.002" },
+      pricing: { x402: "$0.02" },
       visibility: "public",
       httpPath: "classify",
       category: "AI & Inference",
@@ -65,7 +67,7 @@ export const catalog: Catalog = {
     },
     embed: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "embed",
       category: "AI & Inference",
@@ -77,7 +79,7 @@ export const catalog: Catalog = {
     },
     extract: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.003" },
+      pricing: { x402: "$0.02" },
       visibility: "public",
       httpPath: "extract",
       // `extract` over MCP is the web scraper (its name since launch); this one
@@ -92,7 +94,7 @@ export const catalog: Catalog = {
     },
     summarize: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.003" },
+      pricing: { x402: "$0.02" },
       visibility: "public",
       httpPath: "summarize",
       category: "AI & Inference",
@@ -117,7 +119,7 @@ export const catalog: Catalog = {
   web: {
     extract: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.004" },
+      pricing: { x402: "$0.03" },
       visibility: "public",
       httpPath: "web-scraper",
       category: "Search & Web",
@@ -129,7 +131,7 @@ export const catalog: Catalog = {
     },
     scrape: {
       channels: ["http"],
-      pricing: { x402: "$0.004" },
+      pricing: { x402: "$0.03" },
       visibility: "public",
       httpPath: "scrape",
       category: "Search & Web",
@@ -141,7 +143,7 @@ export const catalog: Catalog = {
     },
     links: {
       channels: ["http"],
-      pricing: { x402: "$0.002" },
+      pricing: { x402: "$0.03" },
       visibility: "public",
       httpPath: "links",
       category: "Search & Web",
@@ -153,7 +155,7 @@ export const catalog: Catalog = {
     },
     extract_structured: {
       channels: ["http"],
-      pricing: { x402: "$0.006" },
+      pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "extract-structured",
       category: "Search & Web",
@@ -165,7 +167,7 @@ export const catalog: Catalog = {
     },
     snapshot: {
       channels: ["http"],
-      pricing: { x402: "$0.008" },
+      pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "snapshot",
       category: "Search & Web",
@@ -177,7 +179,7 @@ export const catalog: Catalog = {
     },
     browser: {
       channels: ["http"],
-      pricing: { x402: "$0.01" },
+      pricing: { x402: "$0.10" },
       visibility: "public",
       httpPath: "browser-automate",
       category: "Search & Web",
@@ -189,7 +191,7 @@ export const catalog: Catalog = {
     },
     map: {
       channels: ["http"],
-      pricing: { x402: "$0.004" },
+      pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "crawl-map",
       category: "Search & Web",
@@ -201,7 +203,7 @@ export const catalog: Catalog = {
     },
     crawl: {
       channels: ["http"],
-      pricing: { x402: "$0.01" },
+      pricing: { x402: "$0.10" },
       visibility: "public",
       httpPath: "crawl",
       category: "Search & Web",
@@ -213,7 +215,7 @@ export const catalog: Catalog = {
     },
     screenshot: {
       channels: ["http"],
-      pricing: { x402: "$0.006" },
+      pricing: { x402: "$0.03" },
       visibility: "public",
       httpPath: "screenshot",
       category: "Search & Web",
@@ -291,7 +293,7 @@ export const catalog: Catalog = {
     },
     meeting_slots: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.02" },
+      pricing: { x402: "$0.10" },
       visibility: "public",
       httpPath: "meeting-slots",
       category: "Data & Analytics",
@@ -318,7 +320,7 @@ export const catalog: Catalog = {
   data: {
     currency_convert: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "currency-convert",
       category: "Data & Analytics",
@@ -330,7 +332,7 @@ export const catalog: Catalog = {
     },
     convert_units: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "units-convert",
       category: "Data & Analytics",
@@ -348,7 +350,7 @@ export const catalog: Catalog = {
   market: {
     crypto_price: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "crypto-price",
       category: "Market Data",
@@ -366,7 +368,7 @@ export const catalog: Catalog = {
   image: {
     generate: {
       channels: ["http"],
-      pricing: { x402: "$0.01" },
+      pricing: { x402: "$0.10" },
       visibility: "public",
       httpPath: "generate-image",
       category: "Media & Generation",
@@ -381,7 +383,7 @@ export const catalog: Catalog = {
   audio: {
     transcribe: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.006" },
+      pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "audio-transcribe",
       category: "Media & Generation",
@@ -393,7 +395,7 @@ export const catalog: Catalog = {
     },
     speak: {
       channels: ["http"],
-      pricing: { x402: "$0.005" },
+      pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "audio-speak",
       category: "Media & Generation",
@@ -408,7 +410,7 @@ export const catalog: Catalog = {
   document: {
     pdf: {
       channels: ["http"],
-      pricing: { x402: "$0.008" },
+      pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "pdf",
       category: "Media & Generation",
@@ -426,7 +428,7 @@ export const catalog: Catalog = {
   url: {
     shorten: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "shorten",
       category: "Developer Tools",
@@ -441,7 +443,7 @@ export const catalog: Catalog = {
   qr: {
     generate: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "qr-generate",
       category: "Developer Tools",
@@ -456,7 +458,7 @@ export const catalog: Catalog = {
   webhook: {
     send: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.002" },
+      pricing: { x402: "$0.02" },
       visibility: "public",
       httpPath: "webhook-send",
       category: "Developer Tools",
@@ -468,7 +470,7 @@ export const catalog: Catalog = {
     },
     status: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "webhook-status",
       category: "Developer Tools",
@@ -499,7 +501,7 @@ export const catalog: Catalog = {
   memory: {
     store: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "memory-store",
       category: "Knowledge & Memory",
@@ -511,7 +513,7 @@ export const catalog: Catalog = {
     },
     search: {
       channels: ["mcp", "http"],
-      pricing: { x402: "$0.001" },
+      pricing: { x402: "$0.01" },
       visibility: "public",
       httpPath: "memory-search",
       category: "Knowledge & Memory",
