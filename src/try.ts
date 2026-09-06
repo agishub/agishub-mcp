@@ -6,19 +6,24 @@
  */
 import type { Hono } from "hono";
 import { resolveOperation } from "./services";
+import { mcpOperations } from "./resolver";
 import { buildContext } from "./context";
 import type { OperationContext } from "./services/types";
 
+// Los operationId son los del catálogo vigente. Estuvieron apuntando a los de la
+// taxonomía anterior (timezone.now_in, crypto.price…) y las cuatro demos de esta
+// página pública devolvían "operation unavailable": es la superficie de
+// conversión, así que un visitante pulsaba Run y no obtenía nada.
 const DEMO: Record<string, { id: string; label: string; example: Record<string, unknown> }> = {
-  now_in: { id: "timezone.now_in", label: "Current time in a timezone", example: { timezone: "Asia/Tokyo" } },
+  now_in: { id: "time.now", label: "Current time in a timezone", example: { timezone: "Asia/Tokyo" } },
   convert_timezone: {
-    id: "timezone.convert_timezone",
+    id: "time.convert",
     label: "Convert between timezones",
     example: { datetime: "2026-08-10T15:00", from: "Europe/Madrid", to: "America/New_York" },
   },
-  crypto_price: { id: "crypto.price", label: "Live crypto price (USD)", example: { symbols: "BTC,ETH,SOL" } },
+  crypto_price: { id: "market.crypto_price", label: "Live crypto price (USD)", example: { symbols: "BTC,ETH,SOL" } },
   convert_currency: {
-    id: "finance.convert_currency",
+    id: "data.currency_convert",
     label: "Currency conversion",
     example: { amount: 100, from: "USD", to: "EUR" },
   },
@@ -89,7 +94,7 @@ a{color:#7dd3fc}
     <h2>🔌 Use it in your agent (free, MCP)</h2>
     <p class="muted">In Claude, Cursor, Windsurf or Claude Code:</p>
     <code class="cmd">claude mcp add agishub -- npx -y @agishub/mcp</code>
-    <p class="muted">and all <b>30 tools</b> are ready to call.</p>
+    <p class="muted">and all <b>${mcpOperations().length} tools</b> are ready to call.</p>
   </div>
   <div class="card">
     <h2>💳 Let your agent pay by itself (x402)</h2>
@@ -97,7 +102,7 @@ a{color:#7dd3fc}
     <pre>import { paidFetch } from "agishub-wallet";
 
 // like fetch(), but auto-pays the 402
-await paidFetch("https://api.agishub.com/paid/now-in", {
+await paidFetch("https://api.agishub.com/paid/time-now", {
   method: "POST",
   body: JSON.stringify({ timezone: "Asia/Tokyo" }),
 });</pre>
