@@ -24,7 +24,7 @@ import { mountBackoffice } from "./private/backoffice";
 import { mountTry } from "./try";
 import { handleQueue } from "./webhook-consumer";
 import {
-  shouldTrace, readBodyCapped, callerIp, callerWallet, channelFor, toolFor, writeTrace,
+  shouldTrace, readBodyCapped, callerIp, callerWallet, channelFor, toolFor, writeTrace, clientNameFrom,
 } from "./traces";
 
 // Combined hub — every mcp-channel tool. Kept for back-compat at /mcp.
@@ -125,7 +125,18 @@ app.use(async (c, next) => {
       // Saltar solo el stream persistente GET /sse (no cierra); las respuestas
       // SSE de las POST a /mcp* sí se capturan (se desenvuelven a JSON).
       const respBody = await readBodyCapped(resClone, { skip: path.startsWith("/sse") });
-      await writeTrace(c.env, { ...meta, tool: toolFor(path, reqBody), reqBody, respBody });
+      await writeTrace(c.env, {
+        ...meta,
+        tool: toolFor(path, reqBody),
+        reqBody,
+        respBody,
+        client: clientNameFrom(reqBody),
+        // En `initialize` la sesión aún no existe: el id lo devuelve el servidor
+        // en la cabecera de respuesta. Sin mirar ahí, la fila que lleva el
+        // clientInfo se quedaba sin session_id y no había forma de atribuirle
+        // las llamadas posteriores de esa misma sesión.
+        sessionId: h.get("mcp-session-id") || res.headers.get("mcp-session-id") || "",
+      });
     })(),
   );
 });
