@@ -12,3 +12,6 @@ src/private/backoffice.local.ts
 
 # Copias locales del backoffice privado (no debe salir al repo público)
 .backups/
+
+# Herramienta interna: vive en el repo privado agishub-backoffice
+scripts/migrar-secretos.sh
