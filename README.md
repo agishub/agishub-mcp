@@ -55,88 +55,91 @@ Discovery:    https://api.agishub.com/openapi.json
 
 ## Tools
 
-**34 tools across 12 services.** Prices are per call in USDC on Base. Tools marked
-**MCP · HTTP** are **free via MCP** and pay‑per‑call via **HTTP x402**; tools marked **HTTP**
-are paid‑only (they touch metered infrastructure, so they run exclusively on the x402 endpoint).
+**34 tools across 7 categories.** Prices are per call in USDC on Base, from $0.01.
+Every tool is free to try over MCP; the HTTP endpoint is the one that charges.
 
-### 🕔 Timezone — world clock, date math & scheduling
+### 🤖 AI & Inference
 
-| Tool | What it does | Channels | Cost (x402) |
-|------|--------------|:--------:|:-----------:|
-| `now_in` | Current local time in an IANA timezone — UTC offset, abbreviation, DST flag. | MCP · HTTP | $0.001 |
-| `convert_timezone` | Convert a datetime between two IANA zones. Accepts ISO 8601 or natural language ("next Tuesday 3pm"). | MCP · HTTP | $0.001 |
-| `convert_batch` | Convert one instant into many zones at once — ideal for world‑clock views. | MCP · HTTP | $0.001 |
-| `tz_offset` | Exact UTC offset of a zone at a given instant (DST‑aware; handles +05:30, +05:45). | MCP · HTTP | $0.001 |
-| `lookup_timezone` | Resolve a city or country to its IANA timezone(s). "Delhi" → `Asia/Kolkata`. | MCP · HTTP | $0.001 |
-| `date_math` | Add/subtract time respecting DST, or diff two datetimes across zones. | MCP · HTTP | $0.001 |
-| `find_meeting_slots` | Overlapping working‑hour slots across timezones (skips weekends & public holidays). | MCP · HTTP | free: 1 slot · **$0.02**: all |
-| `is_holiday` | Is a date a public holiday in a country (ISO 3166‑1)? Authoritative public‑holiday data. | MCP · HTTP | $0.001 |
-| `list_timezones` | List or search valid IANA timezone names. | MCP | free |
+Language models, embeddings and classification — no external API key.
 
-### 🕸️ Web — read, scrape & extract from any page
+| Tool | What it does | Endpoint | Cost |
+|------|--------------|----------|:----:|
+| `ai.chat` | Ask a general-purpose LLM a question or give it an instruction, with an optional system prompt. No external API key required. | `/v1/chat` | $0.02 |
+| `ai.classify` | Classify a text into exactly one of the candidate labels you provide (e.g. sentiment, topic, intent). | `/v1/classify` | $0.02 |
+| `ai.embed` | Turn text into a numeric embedding vector for semantic search, RAG and similarity. Multilingual. | `/v1/embed` | $0.01 |
+| `ai.extract` | Extract named entities from text — people, organizations, locations, dates and miscellaneous — returned as structured JSON. | `/v1/extract` | $0.02 |
+| `ai.summarize` | Summarize a block of text into a short abstract, with an optional target length. No external API key required. | `/v1/summarize` | $0.02 |
 
-| Tool | What it does | Channels | Cost (x402) |
-|------|--------------|:--------:|:-----------:|
-| `extract` | Fetch any public URL and return its main content as clean, token‑efficient markdown (title, headings, links, lists). Optional `render:true` runs a headless browser for JS‑heavy pages / SPAs. Built for RAG. | MCP · HTTP | **$0.004** |
-| `scrape` | Extract specific elements from a JS‑rendered page by CSS selector — text and attributes of every match. Backed by a headless browser, so it works on SPAs. | HTTP | $0.004 |
-| `structured` | AI‑powered structured extraction: give a URL plus a prompt and/or a JSON Schema and get back clean structured JSON (e.g. product name, price, rating). | HTTP | $0.006 |
-| `snapshot` | Capture several representations in one call — rendered HTML, a PNG screenshot, and optional markdown & accessibility tree. | HTTP | $0.008 |
-| `links` | Return every hyperlink on a JS‑rendered page as absolute URLs, with visible‑only and same‑site filters. | HTTP | $0.002 |
+### 🕸️ Search & Web
 
-### 🤖 AI — NLP & generation (no external API key)
+Read, scrape, crawl and map any public page.
 
-| Tool | What it does | Channels | Cost (x402) |
-|------|--------------|:--------:|:-----------:|
-| `summarize` | Summarize a block of text into a short abstract, with an optional target length. | MCP · HTTP | $0.003 |
-| `classify` | Classify a text into exactly one of the candidate labels you provide. | MCP · HTTP | $0.002 |
-| `extract_entities` | Extract named entities (people, orgs, locations, dates) as structured JSON. | MCP · HTTP | $0.003 |
-| `embed` | Turn text into a multilingual embedding vector (BGE‑M3) for semantic search / RAG. | MCP · HTTP | $0.001 |
-| `chat` | Ask a general‑purpose LLM a question, with an optional system prompt. | MCP · HTTP | $0.003 |
-| `transcribe` | Transcribe an audio file (by public URL) to text. | MCP · HTTP | $0.006 |
-| `tts` | Convert text into spoken audio (base64 MP3), in several languages. | HTTP | $0.005 |
+| Tool | What it does | Endpoint | Cost |
+|------|--------------|----------|:----:|
+| `web.browser` | Drive a headless browser: open a URL and run an ordered list of steps — click, type, press keys, wait, extract text and screenshot. For flows the plain scraper can't reach (logins, forms, multi-step pages). | `/v1/browser-automate` | $0.10 |
+| `web.crawl` | Crawl multiple pages of a site, respecting link depth and domain limits. Returns async job_id; results include markdown or HTML per page. Use it to fetch and process many pages of content at once. | `/v1/crawl` | $0.10 |
+| `web.extract` | Fetch any public web page and return its main content as clean, token-efficient Markdown (title, description, headings, links, lists). Set render:true to execute JavaScript first for single-page apps or JS-heavy pages that would otherwise come back empty. Built for RAG and for agents that need to read the contents of a URL. | `/v1/web-scraper` | $0.03 |
+| `web.extract_structured` | AI-powered structured extraction: give a URL plus a natural-language prompt and/or a JSON Schema, and get back clean structured JSON (e.g. product name, price, rating). Renders the page in a headless browser first, so it works on SPAs. | `/v1/extract-structured` | $0.05 |
+| `web.links` | Return every hyperlink on a JavaScript-rendered page as a list of absolute URLs, with options to keep only visible links or only same-site links. Backed by a headless browser. Use it to map a site or seed a crawler. | `/v1/links` | $0.03 |
+| `web.map` | Discover all URLs reachable from a domain within a link depth limit. Returns a flat list of absolute URLs, respects robots.txt crawl delays. Use it to map a site's structure before crawling. | `/v1/crawl-map` | $0.05 |
+| `web.scrape` | Extract specific elements from a JavaScript-rendered page by CSS selector. Give a list of selectors (e.g. 'h1', '.price', 'a.product') and get back the text and attributes of every match. Backed by a headless browser, so it works on SPAs and JS-heavy pages. | `/v1/scrape` | $0.03 |
+| `web.screenshot` | Capture a PNG screenshot of any public URL — full page or just the viewport, at a chosen size — returned base64-encoded. Backed by a headless browser. | `/v1/screenshot` | $0.03 |
+| `web.snapshot` | Capture several representations of a page in one call — rendered HTML plus a PNG screenshot by default, and optionally Markdown and the accessibility tree. Backed by a headless browser. Saves round-trips when an agent needs both the content and a visual of a page. | `/v1/snapshot` | $0.05 |
 
-### 🧠 Memory / RAG — persistent semantic memory
+### 📊 Data & Analytics
 
-| Tool | What it does | Channels | Cost (x402) |
-|------|--------------|:--------:|:-----------:|
-| `memory_upsert` | Store text in a persistent, searchable collection (namespace); embedded & indexed. | MCP · HTTP | $0.001 |
-| `memory_search` | Semantically search a namespace and return the most relevant stored entries. | MCP · HTTP | $0.001 |
+Time, timezones, units and currency.
 
-### 📤 Webhooks — guaranteed, retried delivery
+| Tool | What it does | Endpoint | Cost |
+|------|--------------|----------|:----:|
+| `data.convert_units` | Convert a value between units of the same category: length, mass, volume, speed, area, digital storage, time, and temperature (Celsius/Fahrenheit/Kelvin). | `/v1/units-convert` | $0.01 |
+| `data.currency_convert` | Convert an amount between currencies using live daily exchange rates (ISO 4217 codes, e.g. USD, EUR, GBP, JPY). Returns the converted amount and the rate used. | `/v1/currency-convert` | $0.01 |
+| `time.calculate` | Timezone-aware date arithmetic: add or subtract a duration to a datetime (days are calendar-based and DST-safe; hours and minutes are absolute), or compute the difference between two datetimes that may be in different zones. | `/v1/date-calculate` | $0.01 |
+| `time.convert` | Convert a specific date/time from one IANA timezone to another (single or batch). Accepts ISO 8601 or natural language ('next Tuesday 3pm'). Returns the converted datetime with UTC offset, zone abbreviation and DST flag. | `/v1/time-convert` | $0.01 |
+| `time.holiday` | Check whether a given date is a public holiday in a country (identified by its ISO 3166-1 alpha-2 code), and return the holiday name if so. Backed by an authoritative public-holiday dataset. | `/v1/time-holiday` | $0.01 |
+| `time.meeting_slots` | Find working-hour time slots that overlap across participants in different timezones for a meeting of a given duration, excluding weekends and (when a country is given per participant) that person's public holidays. Free tier returns at most 1 slot; the paid endpoint returns every matching slot (see 'upgrade' in the response). | `/v1/meeting-slots` | $0.10 |
+| `time.now` | Get the current local time in an IANA timezone, including the UTC offset, zone abbreviation and whether DST is in effect. Use whenever you need to know what time it is 'now' somewhere. | `/v1/time-now` | $0.01 |
+| `time.offset` | Get the exact UTC offset of an IANA timezone at a given instant, DST-aware. Correctly handles fractional offsets such as India +05:30 and Nepal +05:45. | `/v1/time-offset` | $0.01 |
+| `time.timezones` | List or search valid IANA timezone identifiers by city/region/country, and resolve a city/country name to its timezone(s). Use it to discover the exact identifier to pass to the other tools. | `/v1/timezones` | $0.01 |
 
-| Tool | What it does | Channels | Cost (x402) |
-|------|--------------|:--------:|:-----------:|
-| `relay` | Deliver a webhook (POST/PUT/PATCH) with background retries. Returns a `job_id` at once. | MCP · HTTP | $0.002 |
-| `status` | Check a webhook job's delivery status (queued / retrying / delivered / failed). | MCP · HTTP | $0.001 |
+### 💱 Market Data
 
-### 💱 Finance & crypto — live rates and prices
+Live crypto prices.
 
-| Tool | What it does | Channels | Cost (x402) |
-|------|--------------|:--------:|:-----------:|
-| `convert_currency` | Convert an amount between currencies using live daily FX rates (ISO 4217). | MCP · HTTP | $0.001 |
-| `price` | Live USD spot prices for cryptocurrencies by ticker (BTC, ETH, SOL). | MCP · HTTP | $0.001 |
+| Tool | What it does | Endpoint | Cost |
+|------|--------------|----------|:----:|
+| `market.crypto_price` | Get live USD spot prices for one or more cryptocurrencies by ticker symbol (e.g. BTC, ETH, SOL). | `/v1/crypto-price` | $0.01 |
 
-### 🔧 Utilities & links
+### 🖼️ Media & Generation
 
-| Tool | What it does | Channels | Cost (x402) |
-|------|--------------|:--------:|:-----------:|
-| `qr_code` | Generate a QR code (inline SVG + data URI) for any text or URL. | MCP · HTTP | $0.001 |
-| `convert_units` | Convert between units of one category (length, mass, volume, speed, area, storage, time, temperature). | MCP · HTTP | $0.001 |
-| `shorten` | Shorten a long URL into a compact `api.agishub.com/s/<code>` redirect link. | MCP · HTTP | $0.001 |
+Audio, images and documents.
 
-### 🖼️ Render & browser — documents, images, automation (paid‑only)
+| Tool | What it does | Endpoint | Cost |
+|------|--------------|----------|:----:|
+| `audio.speak` | Convert text into spoken audio (returned base64-encoded MP3), in several languages. | `/v1/audio-speak` | $0.05 |
+| `audio.transcribe` | Transcribe an audio file (given by public URL) to text. Handles mp3, wav, m4a, ogg and more. | `/v1/audio-transcribe` | $0.05 |
+| `document.pdf` | Render a public URL or a raw HTML string into a PDF document, returned base64-encoded. Backed by a headless browser. Use for invoices, reports, receipts and any HTML-to-PDF need. | `/v1/pdf` | $0.05 |
+| `image.generate` | Generate an image from a text prompt (returned base64-encoded PNG). | `/v1/generate-image` | $0.10 |
 
-| Tool | What it does | Channels | Cost (x402) |
-|------|--------------|:--------:|:-----------:|
-| `pdf` | Render a public URL or raw HTML into a PDF (base64). Headless browser. | HTTP | $0.008 |
-| `screenshot` | Capture a PNG screenshot of any public URL (full page or viewport). | HTTP | $0.006 |
-| `generate` (image) | Generate an image from a text prompt (base64 PNG). | HTTP | $0.01 |
-| `automate` (browser) | Drive a headless browser through steps — click, type, wait, extract, screenshot — for logins, forms and multi‑step flows. | HTTP | $0.01 |
+### 🔧 Developer Tools
 
-> New services plug into the same MCP + x402 doors and appear automatically in
-> [`/openapi.json`](https://api.agishub.com/openapi.json).
+QR codes, short links and guaranteed webhook delivery.
 
----
+| Tool | What it does | Endpoint | Cost |
+|------|--------------|----------|:----:|
+| `qr.generate` | Generate a QR code for any text or URL. Returns an inline SVG plus a data URI, with selectable size, quiet-zone margin and error-correction level. | `/v1/qr-generate` | $0.01 |
+| `url.shorten` | Shorten a long URL into a compact api.agishub.com/s/<code> link that redirects to the original. Codes are stored for a year. | `/v1/shorten` | $0.01 |
+| `webhook.send` | Deliver a webhook (POST/PUT/PATCH a JSON payload to a URL) with guaranteed, retried delivery. Returns immediately with a job_id; AgisHub keeps retrying in the background until it succeeds. | `/v1/webhook-send` | $0.02 |
+| `webhook.status` | Check the delivery status of a webhook job (queued / retrying / delivered / failed) by its job_id. | `/v1/webhook-status` | $0.01 |
+
+### 🧠 Knowledge & Memory
+
+Persistent, semantically searchable memory.
+
+| Tool | What it does | Endpoint | Cost |
+|------|--------------|----------|:----:|
+| `memory.search` | Semantically search a memory collection (namespace) and return the most relevant stored entries. The retrieval half of RAG. | `/v1/memory-search` | $0.01 |
+| `memory.store` | Store a piece of text in a persistent, searchable memory collection (namespace). Embedded and indexed for later semantic recall. | `/v1/memory-store` | $0.01 |
 
 ## Quick start
 
@@ -166,9 +169,22 @@ Your agent's wallet only needs **USDC on Base** — the facilitator covers gas.
 
 ## Pricing
 
-Per‑call, in USDC on Base — no subscription. Roughly: **$1 ≈ 1,000 timezone calls**, **≈ 250
-web extractions**, or **50 full meeting‑slot searches**. Settlement fees on Base are a fraction
-of a cent and paid by the facilitator.
+Per‑call, in USDC on Base — no subscription, no signup, no API key. Five tiers, by what a
+call actually costs to run:
+
+| Tier | What | Examples |
+|:----:|------|----------|
+| **$0.01** | Lookups, conversions, memory | `time.now`, `data.currency_convert`, `memory.search` |
+| **$0.02** | LLM inference, guaranteed delivery | `ai.chat`, `ai.classify`, `webhook.send` |
+| **$0.03** | Browser, one page | `web.scrape`, `web.extract`, `web.screenshot` |
+| **$0.05** | Heavy rendering, media | `web.snapshot`, `document.pdf`, `audio.transcribe` |
+| **$0.10** | Orchestration, generation | `web.crawl`, `web.browser`, `image.generate` |
+
+Roughly: **$1 ≈ 100 timezone calls**, **≈ 33 web extractions**, or **10 crawls of up to 100
+pages each**. Settlement fees on Base are a fraction of a cent and paid by the facilitator.
+
+`web.crawl` and `web.map` are capped per call (100 pages, 200 URLs) and priced flat, so a
+larger site is several calls at the same rate rather than one unbounded charge.
 
 ## License
 
