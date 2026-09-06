@@ -109,13 +109,21 @@ export function mountHttp(app: Hono<{ Bindings: Env }>): void {
 
 export function openapi() {
   const paths: Record<string, unknown> = {};
-  for (const { seg, operation, catalog } of httpOperations()) {
+  for (const { seg, operationId, operation, catalog } of httpOperations()) {
     const price = catalog.pricing?.x402 ?? "";
     const schema = zodToJsonSchema(operation.schema, { target: "openApi3" });
     const def = {
       post: {
         operationId: seg.replace(/[^a-z]/gi, "_"),
         summary: `${catalog.description} (x402 paid, ${price} USDC on Base).`,
+        // Extensiones de catálogo: permiten que los ficheros de descubrimiento
+        // del sitio (llms.txt) se generen desde aquí en vez de mantenerse a mano.
+        // Escritos a mano se quedaron con las rutas de la taxonomía anterior y
+        // anunciaban 16 endpoints que ya devolvían 404.
+        "x-service": operationId.split(".")[0],
+        "x-tool": operationId.split(".")[1],
+        "x-category": catalog.category ?? null,
+        "x-price": price,
         requestBody: { required: true, content: { "application/json": { schema } } },
         responses: {
           "200": { description: "Success." },
