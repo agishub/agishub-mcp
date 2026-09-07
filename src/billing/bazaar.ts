@@ -7,12 +7,15 @@
  * `ajv.compile(schema)`, y ajv compila generando código con `new Function`.
  * Cloudflare Workers lo prohíbe ("Code generation from strings disallowed") y
  * eso colgaba cada llamada /paid en isolates fríos, así que la extensión se
- * había desactivado por completo. El precio de esa decisión fue quedarse fuera
- * del registro: 14.664 recursos indexados, ninguno de AgisHub.
+ * había desactivado por completo.
  *
  * La validación que hacía ajv comprobaba que `info` cumpliese `schema`. Aquí
  * ambos salen del MISMO esquema zod de la operación, así que la comprobación es
  * redundante: si el esquema cambia, cambian los dos a la vez.
+ *
+ * Ojo: estos ejemplos son el escaparate del recurso en el registro, así que un
+ * valor malo se publica tal cual. El registro además valida el ejemplo contra
+ * el esquema y descarta el recurso ENTERO si un solo campo no encaja.
  *
  * Todo esto se calcula UNA VEZ al construir la tabla de rutas, nunca por
  * petición, que es lo que hacía insufrible la versión anterior.
@@ -34,11 +37,16 @@ type JsonSchema = {
   maxLength?: number;
 };
 
-/** Valor de ejemplo para una propiedad, por nombre y luego por tipo. */
-function ejemploDe(nombre: string, p: JsonSchema, prof = 0): unknown {
+/**
+ * Valor de ejemplo para una propiedad, por nombre y luego por tipo. `padre` es
+ * el nombre del objeto que la contiene, y sirve para los campos genéricos: en
+ * `date_range: { start, end }` ni `start` ni `end` dicen nada por sí solos y
+ * salían como "example", que es basura en el escaparate del registro.
+ */
+function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = ""): unknown {
   if (p.default !== undefined) return p.default;
   if (p.enum?.length) return p.enum[0];
-  if (p.anyOf?.length) return ejemploDe(nombre, p.anyOf[0], prof);
+  if (p.anyOf?.length) return ejemploDe(nombre, p.anyOf[0], prof, padre);
 
   const n = nombre.toLowerCase();
   const tipo = p.type || (p.properties ? "object" : "string");
@@ -46,22 +54,29 @@ function ejemploDe(nombre: string, p: JsonSchema, prof = 0): unknown {
   if (tipo === "array") {
     if (prof > 2) return [];
     const n0 = Math.max(1, Math.min(p.minItems ?? 1, 3));
-    return Array.from({ length: n0 }, () => ejemploDe(nombre, p.items || { type: "string" }, prof + 1));
+    return Array.from({ length: n0 }, () => ejemploDe(nombre, p.items || { type: "string" }, prof + 1, padre));
   }
   if (tipo === "object") {
     if (prof > 2) return {};
     const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(p.properties || {}).slice(0, 6)) out[k] = ejemploDe(k, v, prof + 1);
+    // Los hijos heredan este nombre como `padre`: así `start` dentro de
+    // `date_range` sale como fecha y no como "example".
+    for (const [k, v] of Object.entries(p.properties || {}).slice(0, 6)) out[k] = ejemploDe(k, v, prof + 1, nombre);
     return out;
   }
   if (tipo === "boolean") return true;
   if (tipo === "number" || tipo === "integer") return n.includes("limit") || n.includes("max") ? 5 : 1;
 
+  // Si el nombre propio no dice nada, se reintenta con el del objeto que lo
+  // contiene antes de caer en el genérico.
+  let s = cadena(n, p);
+  if (s === GENERICO && padre) s = cadena(padre.toLowerCase(), p);
   // El registro valida el ejemplo contra el propio esquema y rechaza el recurso
   // ENTERO si un solo campo se pasa de largo, así que se recorta como red.
-  const s = cadena(n, p);
   return p.maxLength !== undefined && s.length > p.maxLength ? s.slice(0, p.maxLength) : s;
 }
+
+const GENERICO = "example";
 
 /** Valor de ejemplo para una propiedad de texto, elegido por el nombre del campo. */
 function cadena(n: string, p: JsonSchema): string {
@@ -75,6 +90,9 @@ function cadena(n: string, p: JsonSchema): string {
   if (n.includes("timezone") || n === "tz") return "Europe/Madrid";
   if (n === "from") return "Europe/Madrid";
   if (n === "to") return "America/New_York";
+  // Un rango con las dos fechas iguales es válido pero engañoso como ejemplo.
+  if (n === "start") return "2026-12-25";
+  if (n === "end") return "2026-12-31";
   if (n.includes("date")) return "2026-12-25";
   if (n.includes("country")) return "ES";
   if (n.includes("namespace")) return "demo";
@@ -82,7 +100,7 @@ function cadena(n: string, p: JsonSchema): string {
   if (n.includes("currency")) return "USD";
   if (n.includes("prompt") || n.includes("query")) return "What is the x402 protocol?";
   if (n.includes("text") || n.includes("content")) return "AgisHub sells agent capabilities per call.";
-  return "example";
+  return GENERICO;
 }
 
 /** Cuerpo de ejemplo: los campos obligatorios, o los primeros si no hay ninguno. */
