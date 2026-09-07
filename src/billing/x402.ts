@@ -12,6 +12,7 @@ import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { createFacilitatorConfig } from "@coinbase/x402";
 import { httpOperations } from "../resolver";
+import { extensionBazaar } from "./bazaar";
 
 export function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -112,6 +113,11 @@ export const x402Middleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
       const cfg = {
         accepts: { scheme: "exact" as const, price, network, payTo: payTo as `0x${string}` },
         description: ep.catalog.description,
+        // Sin esta extensión el endpoint no entra en el registro de descubrimiento
+        // de Coinbase: no es que lo rechacen, es que nunca se presenta. Se
+        // construye a mano para no arrastrar ajv, que Workers no puede ejecutar
+        // (ver bazaar.ts), y se calcula aquí, una vez por isolate, no por petición.
+        extensions: { bazaar: extensionBazaar(ep.operation.schema, ep.catalog.description) },
       };
       for (const base of [`/v1/${ep.seg}`, `/paid/${ep.seg}`]) {
         // Only POST is the productive, charged call. GET/HEAD are left ungated so a
