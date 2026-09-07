@@ -13,6 +13,7 @@ import { HTTPFacilitatorClient } from "@x402/core/server";
 import { createFacilitatorConfig } from "@coinbase/x402";
 import { httpOperations } from "../resolver";
 import { extensionBazaar } from "./bazaar";
+import { documentoEndpoint } from "../endpoint-doc";
 
 export function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -93,12 +94,11 @@ export const x402Middleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
         : new HTTPFacilitatorClient({ url: c.env.X402_FACILITATOR_URL || "https://x402.org/facilitator" });
     // Wrap CDP so getSupported() can't hang the 402 build (timeout + static fallback).
     const facilitatorClient = new ResilientFacilitator(upstream as any);
-    // NOTE: the x402 bazaar discovery extension validates each route's extension
-    // payload with ajv, which needs runtime `new Function`. Cloudflare Workers blocks
-    // that ("Code generation from strings disallowed"), which hung every /paid call
-    // on cold isolates. So we do NOT register the bazaar extension. Routes stay valid
-    // x402 (exact scheme) 402s — still probe-discoverable — and the JSON Schemas live
-    // in /openapi.json (plain JSON). Do NOT reintroduce the bazaar extension here.
+    // AVISO: no usar el ayudante de @x402/extensions para construir la extensión
+    // `bazaar`. Valida el payload con ajv, que compila generando código con
+    // `new Function`; Cloudflare Workers lo prohíbe ("Code generation from strings
+    // disallowed") y eso colgaba cada llamada /paid en isolates fríos. La extensión
+    // SÍ se registra (más abajo), pero armada a mano como JSON plano en bazaar.ts.
     const resourceServer = new x402ResourceServer(facilitatorClient as any).register(
       network,
       new ExactEvmScheme(),
@@ -120,10 +120,26 @@ export const x402Middleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
         extensions: { bazaar: extensionBazaar(ep.operation.schema, ep.catalog.description) },
       };
       for (const base of [`/v1/${ep.seg}`, `/paid/${ep.seg}`]) {
-        // Only POST is the productive, charged call. GET/HEAD are left ungated so a
-        // probe (browser, crawler, x402-list) reaches the self-describing GET doc
-        // (method POST + price + schema) instead of a bare 402.
+        // POST es la llamada productiva y cobrada.
         routes[`POST ${base}`] = cfg;
+        // GET también se gatea, aunque no sea productivo: el validador de Coinbase
+        // sondea con GET y su comprobación `returns_402` descarta el recurso si
+        // recibe un 200, sin llegar a leer la extensión `bazaar`. Dejarlo abierto
+        // (como estaba) nos mantenía fuera del registro: 0 de ~14.669 recursos.
+        //
+        // Lo que ese hueco protegía —que un rastreador leyese el documento
+        // autodescriptivo en vez de un 402 seco— se conserva sirviéndolo como
+        // CUERPO del propio 402. El reto lleva las dos cosas.
+        routes[`GET ${base}`] = {
+          ...cfg,
+          // Estilo query: el middleware fuerza `method: GET` en la extensión, así
+          // que anunciar un cuerpo JSON aquí describiría una llamada imposible.
+          extensions: { bazaar: extensionBazaar(ep.operation.schema, ep.catalog.description, "query") },
+          unpaidResponseBody: () => ({
+            contentType: "application/json",
+            body: documentoEndpoint(base, ep.catalog.description, price),
+          }),
+        };
       }
     }
     // syncFacilitatorOnStart must stay ON: the facilitator sync provides the data

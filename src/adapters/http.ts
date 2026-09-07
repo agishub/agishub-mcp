@@ -15,6 +15,7 @@ import { recordCall, clientId } from "../analytics";
 import type { OperationContext } from "../services/types";
 import { resolveOperation } from "../services";
 import { catalogEntry } from "../catalog";
+import { documentoEndpoint } from "../endpoint-doc";
 
 function headersOf(c: Context): Record<string, string> {
   const h: Record<string, string> = {};
@@ -26,10 +27,28 @@ function headersOf(c: Context): Record<string, string> {
 
 const errMsg = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
+/**
+ * Entrada de un GET pagado, leída del query string. Los valores se interpretan
+ * como JSON cuando lo son (`?limit=5` → 5, `?raw=true` → true, `?tags=["a"]` →
+ * array) y se dejan como texto cuando no (`?timezone=Europe/Madrid`), porque zod
+ * no convierte cadenas a números ni a booleanos por su cuenta.
+ */
+function entradaDeQuery(c: Context): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(c.req.query())) {
+    try {
+      out[k] = JSON.parse(v);
+    } catch {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
 export function mountHttp(app: Hono<{ Bindings: Env }>): void {
   for (const { seg, operationId, operation, catalog } of httpOperations()) {
-    const run = async (c: Context) => {
-      const body = await c.req.json().catch(() => ({}) as unknown);
+    const run = (leerEntrada: (c: Context) => Promise<unknown>) => async (c: Context) => {
+      const body = await leerEntrada(c);
       const ctx = buildContext("http", headersOf(c), body, c.env) as OperationContext<any>;
       ctx.operationId = operationId;
       ctx.operation = operation;
@@ -52,28 +71,20 @@ export function mountHttp(app: Hono<{ Bindings: Env }>): void {
         return c.json({ error: errMsg(err) }, 400);
       }
     };
+    const ejecutarPost = run(async (c) => await c.req.json().catch(() => ({}) as unknown));
+    const ejecutarGet = run(async (c) => entradaDeQuery(c));
+
     for (const base of [`/v1/${seg}`, `/paid/${seg}`]) {
-      app.post(base, run);
-      // A GET to a paid endpoint is not the productive call — it returns a
-      // self-describing doc so agents/crawlers know to POST and what it costs.
+      app.post(base, ejecutarPost);
+      // GET también está gateado por x402 (ver billing/x402.ts), así que llegar
+      // aquí significa que la llamada está pagada y debe producir el resultado
+      // real: los campos se leen del query string. Sin parámetros no hay nada que
+      // ejecutar, así que se devuelve el documento autodescriptivo — el mismo que
+      // viaja como cuerpo del 402 cuando no se ha pagado.
       app.get(base, (c) =>
-        c.json(
-          {
-            method: "POST",
-            endpoint: base,
-            description: catalog.description,
-            payment: {
-              protocol: "x402",
-              price: catalog.pricing?.x402 ?? null,
-              network: "base",
-              asset: "USDC",
-            },
-            usage: `POST ${base} with a JSON body. An unpaid request returns an x402 HTTP 402 challenge; sign the USDC payment on Base and retry.`,
-            schema: "https://api.agishub.com/openapi.json",
-          },
-          200,
-          { allow: "POST" },
-        ),
+        Object.keys(c.req.query()).length
+          ? ejecutarGet(c)
+          : c.json(documentoEndpoint(base, catalog.description, catalog.pricing?.x402), 200, { allow: "POST" }),
       );
     }
   }

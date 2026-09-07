@@ -31,6 +31,7 @@ type JsonSchema = {
   format?: string;
   minItems?: number;
   minLength?: number;
+  maxLength?: number;
 };
 
 /** Valor de ejemplo para una propiedad, por nombre y luego por tipo. */
@@ -56,8 +57,21 @@ function ejemploDe(nombre: string, p: JsonSchema, prof = 0): unknown {
   if (tipo === "boolean") return true;
   if (tipo === "number" || tipo === "integer") return n.includes("limit") || n.includes("max") ? 5 : 1;
 
+  // El registro valida el ejemplo contra el propio esquema y rechaza el recurso
+  // ENTERO si un solo campo se pasa de largo, así que se recorta como red.
+  const s = cadena(n, p);
+  return p.maxLength !== undefined && s.length > p.maxLength ? s.slice(0, p.maxLength) : s;
+}
+
+/** Valor de ejemplo para una propiedad de texto, elegido por el nombre del campo. */
+function cadena(n: string, p: JsonSchema): string {
   if (n.includes("audio")) return "https://example.com/audio.mp3";
   if (p.format === "uri" || n.includes("url")) return "https://example.com";
+  // `from`/`to` son zonas horarias en time.convert pero códigos ISO 4217 en
+  // data.currency_convert, y ahí el esquema los limita a 3 caracteres. Sin mirar
+  // maxLength salía "Europe/Madrid" como divisa y el registro rechazaba el
+  // recurso entero ("String length must be less than or equal to 3").
+  if (p.maxLength !== undefined && p.maxLength <= 3) return n === "to" ? "EUR" : "USD";
   if (n.includes("timezone") || n === "tz") return "Europe/Madrid";
   if (n === "from") return "Europe/Madrid";
   if (n === "to") return "America/New_York";
@@ -84,7 +98,7 @@ function cuerpoEjemplo(js: JsonSchema): Record<string, unknown> {
 
 export interface ExtensionBazaar {
   info: {
-    input: { type: "http"; method: "POST"; bodyType: "json"; body: Record<string, unknown> };
+    input: Record<string, unknown> & { type: "http" };
     output: { type: "json"; example: Record<string, unknown> };
   };
   schema: Record<string, unknown>;
@@ -93,14 +107,26 @@ export interface ExtensionBazaar {
 /**
  * Construye la extensión para una operación. `schema` describe la forma de
  * `info`, que es lo que el registro valida por su cuenta al indexar.
+ *
+ * `estilo` debe coincidir con el método de la ruta, porque el middleware
+ * sobrescribe `info.input.method` con el de la ruta y quedaría describiendo un
+ * GET con cuerpo JSON: "body" para el POST cobrado, "query" para el GET (que
+ * lee los mismos campos del query string, ver adapters/http.ts).
  */
-export function extensionBazaar(esquemaZod: unknown, descripcion: string): ExtensionBazaar {
+export function extensionBazaar(
+  esquemaZod: unknown,
+  descripcion: string,
+  estilo: "body" | "query" = "body",
+): ExtensionBazaar {
   const js = zodToJsonSchema(esquemaZod as never, { target: "openApi3" }) as JsonSchema;
-  const body = cuerpoEjemplo(js);
+  const campos = cuerpoEjemplo(js);
 
   return {
     info: {
-      input: { type: "http", method: "POST", bodyType: "json", body },
+      input:
+        estilo === "query"
+          ? { type: "http", method: "GET", queryParams: campos }
+          : { type: "http", method: "POST", bodyType: "json", body: campos },
       output: { type: "json", example: { result: descripcion.slice(0, 120) } },
     },
     schema: {
@@ -112,12 +138,16 @@ export function extensionBazaar(esquemaZod: unknown, descripcion: string): Exten
           additionalProperties: false,
           properties: {
             type: { type: "string", enum: ["http"] },
-            method: { type: "string", enum: ["POST"] },
-            bodyType: { type: "string", enum: ["json"] },
-            // El cuerpo real de la operación, tal cual lo describe su esquema zod.
-            body: (js as Record<string, unknown>) ?? { type: "object" },
+            method: { type: "string", enum: [estilo === "query" ? "GET" : "POST"] },
+            // Los campos reales de la operación, tal cual los describe su esquema zod.
+            ...(estilo === "query"
+              ? { queryParams: (js as Record<string, unknown>) ?? { type: "object" } }
+              : {
+                  bodyType: { type: "string", enum: ["json"] },
+                  body: (js as Record<string, unknown>) ?? { type: "object" },
+                }),
           },
-          required: ["type", "method", "bodyType", "body"],
+          required: estilo === "query" ? ["type", "method", "queryParams"] : ["type", "method", "bodyType", "body"],
         },
         output: {
           type: "object",
