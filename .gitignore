@@ -15,3 +15,6 @@ src/private/backoffice.local.ts
 
 # Herramienta interna: vive en el repo privado agishub-backoffice
 scripts/migrar-secretos.sh
+
+# Claves privadas: nunca al repositorio (es público)
+*.pem
