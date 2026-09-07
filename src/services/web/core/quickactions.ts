@@ -1,118 +1,53 @@
 /**
- * Cloudflare Browser Rendering "Quick Actions" REST — the JSON-returning
- * endpoints: /scrape, /links, /json (AI extraction) and /snapshot. Reuses the
- * same CF_API_TOKEN + CF_ACCOUNT_ID as the web scraper's render path and the
- * /pdf + /screenshot renders (token needs the "Browser Rendering" permission).
+ * Acciones rápidas sobre una página: /scrape (por selector CSS), /links,
+ * /json (extracción estructurada con IA) y /snapshot.
  *
- * These all spin a real headless browser on Cloudflare's side, so every call
- * costs money — hence the catalog publishes them on the paid HTTP channel only,
- * never on the free MCP channel (same policy as render.pdf / render.screenshot).
+ * Antes tiraban de la API REST de Browser Rendering con `CF_API_TOKEN`; ese
+ * token perdió el permiso y los cuatro cobraban y fallaban con "Authentication
+ * error". Ahora usan el binding `BROWSER` vía `_shared/navegador`, que no lleva
+ * credenciales y no puede caducar.
+ *
+ * Todas levantan un navegador real, así que cada llamada cuesta dinero: el
+ * catálogo las publica solo en el canal HTTP de pago, nunca en el MCP gratuito.
  */
 
-const TIMEOUT_MS = 30_000;
+import { conNavegador, irA, urlPublica, aBase64, NavegadorError } from "../../_shared/navegador";
+import { htmlAMarkdown } from "./extract";
 
-export class QuickActionError extends Error {}
+// Se mantiene el nombre histórico del error: los handlers lo capturan por tipo.
+export { NavegadorError as QuickActionError };
 
-// ── URL guard (http/https only, block obvious internal hosts) ─────────────────
-function assertPublicHttpUrl(raw: string): string {
-  let u: URL;
-  try {
-    u = new URL(raw);
-  } catch {
-    throw new QuickActionError("URL inválida.");
-  }
-  if (u.protocol !== "http:" && u.protocol !== "https:") {
-    throw new QuickActionError("Solo se admiten URLs http/https.");
-  }
-  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, "");
-  const isPrivate =
-    host === "localhost" ||
-    host.endsWith(".localhost") ||
-    host.endsWith(".internal") ||
-    host === "::1" ||
-    /^(0\.|127\.|10\.|192\.168\.|169\.254\.)/.test(host) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(host);
-  if (isPrivate) throw new QuickActionError("Host no permitido (red interna).");
-  return u.toString();
-}
-
-// ── shared REST call → returns the parsed `result` field ──────────────────────
-async function callJson<T = unknown>(
-  env: Env | undefined,
-  endpoint: "scrape" | "links" | "json" | "snapshot",
-  body: Record<string, unknown>,
-): Promise<T> {
-  const token = env?.CF_API_TOKEN;
-  const acct = env?.CF_ACCOUNT_ID;
-  if (!token || !acct) {
-    throw new QuickActionError(
-      "Browser Rendering is not configured (missing CF_API_TOKEN / CF_ACCOUNT_ID).",
-    );
-  }
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${acct}/browser-rendering/${endpoint}`,
-      {
-        method: "POST",
-        signal: ctrl.signal,
-        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-        body: JSON.stringify(body),
-      },
-    );
-    const data = (await res.json().catch(() => null)) as
-      | { success?: boolean; result?: T; errors?: unknown }
-      | null;
-    if (!res.ok || !data || data.success === false) {
-      const detail = data?.errors ? JSON.stringify(data.errors).slice(0, 240) : `HTTP ${res.status}`;
-      throw new QuickActionError(`Browser Rendering ${endpoint} failed: ${detail}`);
-    }
-    return data.result as T;
-  } catch (e) {
-    if (e instanceof QuickActionError) throw e;
-    throw new QuickActionError(
-      `Browser Rendering ${endpoint} error: ${e instanceof Error ? e.message : String(e)}`,
-    );
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// ── /scrape — extract elements by CSS selector ────────────────────────────────
+// ── /scrape — extraer elementos por selector CSS ──────────────────────────────
 export interface ScrapeOptions {
   url: string;
   selectors: string[];
 }
 
-interface CfScrapeMatch {
-  text?: string;
-  html?: string;
-  attributes?: { name: string; value: string }[];
-}
-interface CfScrapeGroup {
-  selector: string;
-  results?: CfScrapeMatch[];
-}
-
 export async function scrape(o: ScrapeOptions, env?: Env) {
-  const url = assertPublicHttpUrl(o.url);
-  const groups = await callJson<CfScrapeGroup[]>(env, "scrape", {
-    url,
-    elements: o.selectors.map((selector) => ({ selector })),
+  const url = urlPublica(o.url);
+  const elements = await conNavegador(env, "scrape", async (page) => {
+    await irA(page, url);
+    const salida = [];
+    for (const selector of o.selectors) {
+      // Un selector que no case (o que sea inválido) no debe tumbar el resto.
+      // Este callback se serializa y corre DENTRO del navegador, donde sí existen
+      // los tipos del DOM; el tsconfig del Worker no los incluye, de ahí el any.
+      const matches = await page
+        .$$eval(selector, (els: any[]) =>
+          els.map((el) => ({
+            text: (el.textContent || "").trim(),
+            attributes: Object.fromEntries(Array.from(el.attributes as any[]).map((a: any) => [a.name, a.value])),
+          })),
+        )
+        .catch(() => [] as { text: string; attributes: Record<string, string> }[]);
+      salida.push({ selector, count: matches.length, matches });
+    }
+    return salida;
   });
-  const elements = (groups || []).map((g) => ({
-    selector: g.selector,
-    count: g.results?.length ?? 0,
-    matches: (g.results || []).map((m) => ({
-      text: (m.text || "").trim(),
-      attributes: Object.fromEntries((m.attributes || []).map((a) => [a.name, a.value])),
-    })),
-  }));
   return { url, elements, scraped_at: new Date().toISOString() };
 }
 
-// ── /links — every hyperlink on the page ──────────────────────────────────────
+// ── /links — todos los hipervínculos de la página ─────────────────────────────
 export interface LinksOptions {
   url: string;
   visible_only?: boolean;
@@ -120,36 +55,95 @@ export interface LinksOptions {
 }
 
 export async function links(o: LinksOptions, env?: Env) {
-  const url = assertPublicHttpUrl(o.url);
-  const result = await callJson<string[]>(env, "links", {
-    url,
-    visibleLinksOnly: !!o.visible_only,
-    excludeExternalLinks: !!o.exclude_external,
+  const url = urlPublica(o.url);
+  const encontrados: string[] = await conNavegador(env, "links", async (page) => {
+    await irA(page, url);
+    // Corre dentro del navegador (ver nota en scrape sobre los tipos del DOM).
+    return await page.$$eval(
+      "a[href]",
+      (els: any[], soloVisibles: boolean) =>
+        els
+          .filter((el) => !soloVisibles || el.getClientRects().length > 0)
+          // `href` de la propiedad, no del atributo: ya viene resuelto a absoluto.
+          .map((el) => el.href)
+          .filter(Boolean),
+      !!o.visible_only,
+    );
   });
-  const list = Array.isArray(result) ? result : [];
-  return { url, count: list.length, links: list, fetched_at: new Date().toISOString() };
+
+  // El filtro de dominio se hace fuera del navegador, donde tenemos el origen.
+  const origen = new URL(url).origin;
+  const filtrados = o.exclude_external
+    ? encontrados.filter((l) => {
+        try {
+          return new URL(l).origin === origen;
+        } catch {
+          return false;
+        }
+      })
+    : encontrados;
+  const unicos = [...new Set(filtrados)];
+  return { url, count: unicos.length, links: unicos, fetched_at: new Date().toISOString() };
 }
 
-// ── /json — AI-powered structured extraction ──────────────────────────────────
+// ── /json — extracción estructurada con IA ────────────────────────────────────
 export interface StructuredOptions {
   url: string;
   prompt?: string;
   schema?: Record<string, unknown>;
 }
 
+const LLM = "@cf/meta/llama-3.1-8b-instruct-fp8";
+const MAX_CHARS = 12_000;
+
 export async function structured(o: StructuredOptions, env?: Env) {
-  const url = assertPublicHttpUrl(o.url);
+  const url = urlPublica(o.url);
   if (!o.prompt && !o.schema) {
-    throw new QuickActionError("Provide a 'prompt' and/or a JSON 'schema' describing what to extract.");
+    throw new NavegadorError("Provide a 'prompt' and/or a JSON 'schema' describing what to extract.");
   }
-  const body: Record<string, unknown> = { url };
-  if (o.prompt) body.prompt = o.prompt;
-  if (o.schema) body.response_format = { type: "json_schema", json_schema: o.schema };
-  const data = await callJson<Record<string, unknown>>(env, "json", body);
+  if (!env?.AI) throw new NavegadorError("The AI service is temporarily unavailable.");
+
+  // La REST /json hacía navegación y extracción en un paso. Aquí se separan:
+  // el binding trae el HTML y el modelo lo interpreta. Se le pasa markdown en
+  // vez de HTML crudo porque cabe mucho más contenido útil en el contexto.
+  const html = await conNavegador(env, "json", async (page) => {
+    await irA(page, url);
+    return (await page.content()) as string;
+  });
+  const texto = htmlAMarkdown(html, url).slice(0, MAX_CHARS);
+
+  const instruccion = [
+    "Extract structured data from the page content below.",
+    o.prompt ? `What to extract: ${o.prompt}` : "",
+    o.schema ? `Return JSON matching this JSON Schema: ${JSON.stringify(o.schema)}` : "",
+    "Answer with raw JSON only — no prose, no markdown fences.",
+    "",
+    texto,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const r = (await env.AI.run(LLM, { prompt: instruccion })) as { response?: unknown };
+  const bruto = typeof r?.response === "string" ? r.response : String(r?.response ?? "");
+
+  // El modelo suele envolver el JSON en ``` pese a pedirle lo contrario.
+  const limpio = bruto.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
+  let data: unknown;
+  try {
+    data = JSON.parse(limpio);
+  } catch {
+    // Segundo intento: quedarse con el primer objeto o array equilibrado.
+    const m = limpio.match(/[[{][\s\S]*[\]}]/);
+    try {
+      data = m ? JSON.parse(m[0]) : { raw: limpio };
+    } catch {
+      data = { raw: limpio };
+    }
+  }
   return { url, data, extracted_at: new Date().toISOString() };
 }
 
-// ── /snapshot — HTML + screenshot (+ optional markdown / a11y tree) ───────────
+// ── /snapshot — HTML + captura (+ markdown / árbol de accesibilidad) ───────────
 export interface SnapshotOptions {
   url: string;
   formats?: string[];
@@ -158,29 +152,36 @@ export interface SnapshotOptions {
   height?: number;
 }
 
-interface CfSnapshot {
-  content?: string;
-  screenshot?: string;
-  markdown?: string;
-  accessibilityTree?: unknown;
-}
-
 export async function snapshot(o: SnapshotOptions, env?: Env) {
-  const url = assertPublicHttpUrl(o.url);
+  const url = urlPublica(o.url);
   const formats = o.formats && o.formats.length ? o.formats : ["html", "screenshot"];
-  const body: Record<string, unknown> = {
-    url,
-    formats,
-    viewport: { width: o.width || 1280, height: o.height || 800 },
-    screenshotOptions: { fullPage: !!o.full_page, type: "png" },
-  };
-  const r = await callJson<CfSnapshot>(env, "snapshot", body);
+  const quiere = (f: string) => formats.includes(f);
+
+  const r = await conNavegador(env, "snapshot", async (page) => {
+    await page.setViewport({ width: o.width || 1280, height: o.height || 800 });
+    await irA(page, url);
+    const out: { html?: string; screenshot?: string; a11y?: unknown } = {};
+    // El markdown se deriva del HTML, así que hay que capturarlo también.
+    if (quiere("html") || quiere("markdown")) out.html = (await page.content()) as string;
+    if (quiere("screenshot")) {
+      out.screenshot = aBase64(await page.screenshot({ fullPage: !!o.full_page, type: "png" }));
+    }
+    if (quiere("accessibilityTree") || quiere("accessibility_tree")) {
+      out.a11y = await page.accessibility.snapshot();
+    }
+    return out;
+  });
+
   const out: Record<string, unknown> = { url, formats, captured_at: new Date().toISOString() };
-  if (r.content != null) out.html = r.content;
-  if (r.markdown != null) out.markdown = r.markdown;
-  if (r.accessibilityTree != null) out.accessibility_tree = r.accessibilityTree;
+  if (quiere("html") && r.html != null) out.html = r.html;
+  if (quiere("markdown") && r.html != null) out.markdown = htmlAMarkdown(r.html, url);
+  if (r.a11y != null) out.accessibility_tree = r.a11y;
   if (r.screenshot) {
-    out.screenshot = { mime: "image/png", base64: r.screenshot, data_uri: `data:image/png;base64,${r.screenshot}` };
+    out.screenshot = {
+      mime: "image/png",
+      base64: r.screenshot,
+      data_uri: `data:image/png;base64,${r.screenshot}`,
+    };
   }
   return out;
 }

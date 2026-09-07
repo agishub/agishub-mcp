@@ -14,6 +14,12 @@ import { automate, type Step } from "../browser/core/run";
 import { mapCore } from "../crawl/core/map";
 import { crawlCore, getCrawlStatus } from "../crawl/core/crawl";
 import * as B from "../render/core/browser";
+import { catalogEntry } from "../../catalog";
+
+// El precio del scraper se anuncia en los avisos del tramo gratuito. Estaba
+// escrito a mano y llevaba tres subidas de retraso ($0.004 frente a $0.03),
+// así que quien leía el aviso recibía una cifra falsa.
+const PRECIO_SCRAPER = catalogEntry("web.extract")?.pricing?.x402 ?? "";
 
 /** Las operaciones de crawl necesitan bindings (cola, D1); en stdio no los hay. */
 function requireEnv(env: Env | undefined): Env {
@@ -50,11 +56,11 @@ export async function extract(ctx: OperationContext<z.infer<typeof S.extract>>) 
   const capped = (result as { truncated?: boolean }).truncated === true;
   const nudge =
     render && capped
-      ? "Free MCP tier: static fetch, capped at 8,000 chars. For JavaScript rendering and the full document, use the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004)."
+      ? `Free MCP tier: static fetch, capped at 8,000 chars. For JavaScript rendering and the full document, use the paid HTTP endpoint POST /v1/web-scraper (x402, ${PRECIO_SCRAPER}).`
       : render
-        ? "JavaScript rendering is only on the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004). Returned the static fetch."
+        ? `JavaScript rendering is only on the paid HTTP endpoint POST /v1/web-scraper (x402, ${PRECIO_SCRAPER}). Returned the static fetch.`
         : capped
-          ? "Free MCP tier: output capped at 8,000 chars. For the full document use the paid HTTP endpoint POST /v1/web-scraper (x402, $0.004)."
+          ? `Free MCP tier: output capped at 8,000 chars. For the full document use the paid HTTP endpoint POST /v1/web-scraper (x402, ${PRECIO_SCRAPER}).`
           : undefined;
 
   return freemiumNote(ctx, result, {

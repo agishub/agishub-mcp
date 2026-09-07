@@ -5,6 +5,7 @@
  */
 
 import { parse, NodeType, type HTMLElement } from "node-html-parser";
+import { conNavegador } from "../../_shared/navegador";
 
 export interface ExtractOptions {
   url: string;
@@ -19,6 +20,8 @@ export interface ExtractResult {
   final_url: string;
   status: number;
   rendered: boolean;
+  /** Por qué no se renderizó, cuando se pidió `render:true` y no pudo hacerse. */
+  render_error?: string;
   title: string | null;
   description: string | null;
   site_name: string | null;
@@ -112,36 +115,40 @@ async function fetchHtml(u: URL): Promise<{ html: string; finalUrl: string; stat
   return { html, finalUrl: res.url || u.toString(), status: res.status };
 }
 
-// ── JS rendering via Cloudflare Browser Rendering REST (/content) ─────────────
-// Returns rendered HTML, or null if not configured (caller falls back to a plain
-// fetch). Reuses CF_API_TOKEN + CF_ACCOUNT_ID; the token needs the "Browser
-// Rendering" permission. No heavy puppeteer dependency, so zero bundle/cold-start
-// impact for the non-rendered path.
+// ── Renderizado JS mediante el binding BROWSER ────────────────────────────────
+// Devuelve el HTML ya renderizado, o null para que quien llama caiga a un fetch
+// plano y lo reporte con `rendered:false`.
+//
+// Usaba la REST de Browser Rendering con CF_API_TOKEN. Cuando ese token perdió
+// el permiso, esta función empezó a devolver null en todas las llamadas: como el
+// fallo es silencioso por diseño, `render:true` se seguía cobrando y entregaba
+// HTML sin renderizar. El binding no lleva credenciales y no puede caducar.
+let ultimoFalloRender: string | null = null;
+
 async function renderHtml(env: Env | undefined, u: URL): Promise<{ html: string; finalUrl: string; status: number } | null> {
-  const token = env?.CF_API_TOKEN;
-  const acct = env?.CF_ACCOUNT_ID;
-  if (!token || !acct) return null; // not configured → caller falls back to fetch
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), RENDER_TIMEOUT_MS);
+  ultimoFalloRender = null;
+  if (!env?.BROWSER) {
+    ultimoFalloRender = "binding BROWSER no disponible";
+    return null;
+  }
   try {
-    const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${acct}/browser-rendering/content`, {
-      method: "POST",
-      signal: ctrl.signal,
-      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        url: u.toString(),
-        rejectResourceTypes: ["image", "media", "font"],
-        gotoOptions: { waitUntil: "networkidle0", timeout: 20000 },
-      }),
+    const html = await conNavegador(env, "content", async (page: any) => {
+      // No se descargan imágenes, vídeo ni tipografías: no aportan nada al
+      // markdown y son la mayor parte del tiempo de carga.
+      await page.setRequestInterception(true);
+      page.on("request", (req: any) =>
+        ["image", "media", "font"].includes(req.resourceType()) ? req.abort() : req.continue(),
+      );
+      await page.goto(u.toString(), { waitUntil: "networkidle0", timeout: RENDER_TIMEOUT_MS });
+      return (await page.content()) as string;
     });
-    const data = (await res.json().catch(() => null)) as any;
-    const html = typeof data?.result === "string" ? data.result : "";
-    if (!res.ok || data?.success === false || !html) return null; // fall back to fetch
-    return { html, finalUrl: u.toString(), status: 200 };
-  } catch {
-    return null; // render failed/timed out → caller falls back to fetch
-  } finally {
-    clearTimeout(timer);
+    if (!html) ultimoFalloRender = "el navegador devolvió un documento vacío";
+    return html ? { html, finalUrl: u.toString(), status: 200 } : null;
+  } catch (e) {
+    // El fallback a fetch plano es deliberado, pero callarse el motivo fue justo
+    // lo que dejó `render:true` cobrando sin renderizar durante semanas.
+    ultimoFalloRender = e instanceof Error ? e.message : String(e);
+    return null;
   }
 }
 
@@ -313,6 +320,21 @@ function block(node: any, o: Opts): string {
 }
 
 // ── public API ────────────────────────────────────────────────────────────────
+/**
+ * HTML ya obtenido → markdown limpio, con el mismo tratamiento que `extract`
+ * (quitar ruido, quedarse con el bloque principal, convertir). Lo usan snapshot
+ * y la extracción estructurada, que traen el HTML del navegador y no deben
+ * volver a descargar la página solo para convertirla.
+ */
+export function htmlAMarkdown(html: string, base: string, incluirEnlaces = true): string {
+  const root = parse(html, { comment: false });
+  stripNoise(root);
+  return block(pickMain(root), { links: incluirEnlaces, images: false, base })
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export async function extract(opts: ExtractOptions, env?: Env): Promise<ExtractResult> {
   const u = assertPublicHttpUrl(opts.url);
 
@@ -360,6 +382,7 @@ export async function extract(opts: ExtractOptions, env?: Env): Promise<ExtractR
     final_url: finalUrl,
     status,
     rendered,
+    ...(opts.render && !rendered && ultimoFalloRender ? { render_error: ultimoFalloRender } : {}),
     title,
     description: description ?? null,
     site_name: site_name ?? null,
