@@ -37,6 +37,7 @@ export type JsonSchema = {
   maxLength?: number;
   minimum?: number;
   maximum?: number;
+  description?: string;
 };
 
 /**
@@ -136,6 +137,14 @@ function cadena(n: string, p: JsonSchema, contexto = "", hermanos = new Set<stri
     return /timezone|time zone/i.test(contexto) ? "Madrid" : "What is the x402 protocol?";
   }
   if (n.includes("text") || n.includes("content")) return "AgisHub sells agent capabilities per call.";
+  // Último recurso antes del genérico: lo que el propio esquema dice del campo.
+  // `time.offset` tiene un campo llamado `instant`, que no casa con ninguna regla
+  // por nombre, así que se publicaba como "example" y el endpoint devolvía 400 al
+  // intentar parsearlo como fecha. Su descripción sí lo delata ("ISO 8601").
+  const d = p.description || "";
+  if (/ISO ?8601|datetime|timestamp/i.test(d)) return "2026-12-25T10:00:00Z";
+  if (/\bdate\b/i.test(d)) return "2026-12-25";
+  if (/IANA|timezone|time zone/i.test(d)) return "Europe/Madrid";
   return GENERICO;
 }
 
