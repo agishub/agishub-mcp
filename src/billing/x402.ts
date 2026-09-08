@@ -120,26 +120,36 @@ export const x402Middleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
         extensions: { bazaar: extensionBazaar(ep.operation.schema, ep.catalog.description) },
       };
       for (const base of [`/v1/${ep.seg}`, `/paid/${ep.seg}`]) {
-        // POST es la llamada productiva y cobrada.
+        // POST es la llamada productiva y cobrada, en ambas rutas.
         routes[`POST ${base}`] = cfg;
-        // GET también se gatea, aunque no sea productivo: el validador de Coinbase
-        // sondea con GET y su comprobación `returns_402` descarta el recurso si
-        // recibe un 200, sin llegar a leer la extensión `bazaar`. Dejarlo abierto
-        // (como estaba) nos mantenía fuera del registro: 0 de ~14.669 recursos.
+        // El GET se gatea SOLO en la ruta canónica, y el mismo mecanismo sirve
+        // para entrar en el registro de Coinbase y para salir de él:
         //
-        // Lo que ese hueco protegía —que un rastreador leyese el documento
-        // autodescriptivo en vez de un 402 seco— se conserva sirviéndolo como
-        // CUERPO del propio 402. El reto lleva las dos cosas.
-        routes[`GET ${base}`] = {
-          ...cfg,
-          // Estilo query: el middleware fuerza `method: GET` en la extensión, así
-          // que anunciar un cuerpo JSON aquí describiría una llamada imposible.
-          extensions: { bazaar: extensionBazaar(ep.operation.schema, ep.catalog.description, "query") },
-          unpaidResponseBody: () => ({
-            contentType: "application/json",
-            body: documentoEndpoint(base, ep.catalog.description, price),
-          }),
-        };
+        //  - En /v1 gatearlo es lo que nos metió. Su validador sondea con GET y
+        //    la comprobación `returns_402` descartaba el recurso al recibir un
+        //    200, sin llegar a leer la extensión `bazaar`: 0 de ~14.669.
+        //  - En /paid se deja abierto a propósito, porque documentan que
+        //    «endpoints that stop returning 402 Payment Required are eventually
+        //    removed from the index entirely». Así el registro suelta solo las
+        //    34 entradas duplicadas del alias heredado, que son las que hacen
+        //    que agentic.market anuncie 65 endpoints y enseñe /paid/<tool>.
+        //
+        // El POST sigue cobrando en ambas, así que quien ya use el alias no se
+        // entera. Y lo que el hueco protegía —que un rastreador leyese el
+        // documento autodescriptivo en vez de un 402 seco— se conserva en /v1
+        // sirviéndolo como CUERPO del propio 402.
+        if (!base.startsWith("/paid/")) {
+          routes[`GET ${base}`] = {
+            ...cfg,
+            // Estilo query: el middleware fuerza `method: GET` en la extensión,
+            // así que anunciar un cuerpo JSON describiría una llamada imposible.
+            extensions: { bazaar: extensionBazaar(ep.operation.schema, ep.catalog.description, "query") },
+            unpaidResponseBody: () => ({
+              contentType: "application/json",
+              body: documentoEndpoint(base, ep.catalog.description, price),
+            }),
+          };
+        }
       }
     }
     // syncFacilitatorOnStart must stay ON: the facilitator sync provides the data
