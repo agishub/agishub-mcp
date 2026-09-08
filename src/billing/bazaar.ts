@@ -35,6 +35,8 @@ type JsonSchema = {
   minItems?: number;
   minLength?: number;
   maxLength?: number;
+  minimum?: number;
+  maximum?: number;
 };
 
 /**
@@ -43,10 +45,10 @@ type JsonSchema = {
  * `date_range: { start, end }` ni `start` ni `end` dicen nada por sí solos y
  * salían como "example", que es basura en el escaparate del registro.
  */
-function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = ""): unknown {
+function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = "", contexto = ""): unknown {
   if (p.default !== undefined) return p.default;
   if (p.enum?.length) return p.enum[0];
-  if (p.anyOf?.length) return ejemploDe(nombre, p.anyOf[0], prof, padre);
+  if (p.anyOf?.length) return ejemploDe(nombre, p.anyOf[0], prof, padre, contexto);
 
   const n = nombre.toLowerCase();
   const tipo = p.type || (p.properties ? "object" : "string");
@@ -54,23 +56,23 @@ function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = ""): unknown
   if (tipo === "array") {
     if (prof > 2) return [];
     const n0 = Math.max(1, Math.min(p.minItems ?? 1, 3));
-    return Array.from({ length: n0 }, () => ejemploDe(nombre, p.items || { type: "string" }, prof + 1, padre));
+    return Array.from({ length: n0 }, () => ejemploDe(nombre, p.items || { type: "string" }, prof + 1, padre, contexto));
   }
   if (tipo === "object") {
     if (prof > 2) return {};
     const out: Record<string, unknown> = {};
     // Los hijos heredan este nombre como `padre`: así `start` dentro de
     // `date_range` sale como fecha y no como "example".
-    for (const [k, v] of Object.entries(p.properties || {}).slice(0, 6)) out[k] = ejemploDe(k, v, prof + 1, nombre);
+    for (const [k, v] of Object.entries(p.properties || {}).slice(0, 6)) out[k] = ejemploDe(k, v, prof + 1, nombre, contexto);
     return out;
   }
   if (tipo === "boolean") return true;
-  if (tipo === "number" || tipo === "integer") return n.includes("limit") || n.includes("max") ? 5 : 1;
+  if (tipo === "number" || tipo === "integer") return numero(n, p);
 
   // Si el nombre propio no dice nada, se reintenta con el del objeto que lo
   // contiene antes de caer en el genérico.
-  let s = cadena(n, p);
-  if (s === GENERICO && padre) s = cadena(padre.toLowerCase(), p);
+  let s = cadena(n, p, contexto);
+  if (s === GENERICO && padre) s = cadena(padre.toLowerCase(), p, contexto);
   // El registro valida el ejemplo contra el propio esquema y rechaza el recurso
   // ENTERO si un solo campo se pasa de largo, así que se recorta como red.
   return p.maxLength !== undefined && s.length > p.maxLength ? s.slice(0, p.maxLength) : s;
@@ -78,8 +80,25 @@ function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = ""): unknown
 
 const GENERICO = "example";
 
+/**
+ * Valor de ejemplo numérico. Sin esto todo lo que no fuese un límite salía como
+ * 1, y `qr.generate` publicaba un QR de 1 píxel por módulo: válido para el
+ * esquema, inútil como ejemplo. Se respetan `minimum`/`maximum` porque el
+ * registro valida el ejemplo y descarta el recurso entero si no encaja.
+ */
+function numero(n: string, p: JsonSchema): number {
+  let v = 1;
+  if (n.includes("limit") || n.includes("max")) v = 5;
+  else if (n.includes("width")) v = 1280;
+  else if (n.includes("height")) v = 800;
+  else if (n.includes("size")) v = 8;
+  if (p.maximum !== undefined) v = Math.min(v, p.maximum);
+  if (p.minimum !== undefined) v = Math.max(v, p.minimum);
+  return v;
+}
+
 /** Valor de ejemplo para una propiedad de texto, elegido por el nombre del campo. */
-function cadena(n: string, p: JsonSchema): string {
+function cadena(n: string, p: JsonSchema, contexto = ""): string {
   if (n.includes("audio")) return "https://example.com/audio.mp3";
   if (p.format === "uri" || n.includes("url")) return "https://example.com";
   // `from`/`to` son zonas horarias en time.convert pero códigos ISO 4217 en
@@ -87,6 +106,9 @@ function cadena(n: string, p: JsonSchema): string {
   // maxLength salía "Europe/Madrid" como divisa y el registro rechazaba el
   // recurso entero ("String length must be less than or equal to 3").
   if (p.maxLength !== undefined && p.maxLength <= 3) return n === "to" ? "EUR" : "USD";
+  // Un selector CSS de ejemplo tiene que casar con algo: "example" no casa nada,
+  // y era lo que se publicaba para web.scrape.
+  if (n.includes("selector")) return "h1";
   if (n.includes("timezone") || n === "tz") return "Europe/Madrid";
   if (n === "from") return "Europe/Madrid";
   if (n === "to") return "America/New_York";
@@ -98,19 +120,39 @@ function cadena(n: string, p: JsonSchema): string {
   if (n.includes("namespace")) return "demo";
   if (n.includes("symbol")) return "BTC,ETH";
   if (n.includes("currency")) return "USD";
-  if (n.includes("prompt") || n.includes("query")) return "What is the x402 protocol?";
+  // `query` no dice por sí solo qué se busca: en time.timezones es un filtro de
+  // ciudades y salía preguntando por el protocolo x402. La descripción de la
+  // operación es lo único que distingue un caso del otro.
+  if (n.includes("prompt") || n.includes("query")) {
+    return /timezone|time zone/i.test(contexto) ? "Madrid" : "What is the x402 protocol?";
+  }
   if (n.includes("text") || n.includes("content")) return "AgisHub sells agent capabilities per call.";
   return GENERICO;
 }
 
-/** Cuerpo de ejemplo: los campos obligatorios, o los primeros si no hay ninguno. */
-function cuerpoEjemplo(js: JsonSchema): Record<string, unknown> {
+/**
+ * Cuerpo de ejemplo: los campos obligatorios, o los primeros si no hay ninguno.
+ *
+ * Se completa hasta dos campos con opcionales porque «obligatorio» no siempre
+ * basta para que la llamada funcione: en web.extract_structured solo `url` lo
+ * es, pero sin `prompt` ni `schema` el endpoint devuelve 400 — y ese ejemplo
+ * inservible es el que se publicaba en el registro para que lo copiaran los
+ * agentes. Enseñar un parámetro opcional de más nunca estorba; enseñar una
+ * llamada que falla, sí.
+ */
+function cuerpoEjemplo(js: JsonSchema, contexto = ""): Record<string, unknown> {
   const props = js.properties || {};
   const req = new Set(js.required || []);
   const nombres = Object.keys(props);
-  const elegidos = req.size ? nombres.filter((n) => req.has(n)) : nombres.slice(0, 2);
+  const obligatorios = nombres.filter((n) => req.has(n));
+  // Sin ningún campo obligatorio los primeros dos pueden ser alternativas
+  // excluyentes: en document.pdf salían `url` y `html` juntos, y el handler
+  // ignora el segundo. Con uno solo el ejemplo es una llamada que funciona.
+  const elegidos = req.size
+    ? [...obligatorios, ...nombres.filter((n) => !req.has(n))].slice(0, Math.max(obligatorios.length, 2))
+    : nombres.slice(0, 1);
   const out: Record<string, unknown> = {};
-  for (const n of elegidos) out[n] = ejemploDe(n, props[n]);
+  for (const n of elegidos) out[n] = ejemploDe(n, props[n], 0, "", contexto);
   return out;
 }
 
@@ -137,7 +179,7 @@ export function extensionBazaar(
   estilo: "body" | "query" = "body",
 ): ExtensionBazaar {
   const js = zodToJsonSchema(esquemaZod as never, { target: "openApi3" }) as JsonSchema;
-  const campos = cuerpoEjemplo(js);
+  const campos = cuerpoEjemplo(js, descripcion);
 
   return {
     info: {
