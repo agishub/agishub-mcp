@@ -45,10 +45,10 @@ export type JsonSchema = {
  * `date_range: { start, end }` ni `start` ni `end` dicen nada por sí solos y
  * salían como "example", que es basura en el escaparate del registro.
  */
-function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = "", contexto = ""): unknown {
+function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = "", contexto = "", hermanos = new Set<string>()): unknown {
   if (p.default !== undefined) return p.default;
   if (p.enum?.length) return p.enum[0];
-  if (p.anyOf?.length) return ejemploDe(nombre, p.anyOf[0], prof, padre, contexto);
+  if (p.anyOf?.length) return ejemploDe(nombre, p.anyOf[0], prof, padre, contexto, hermanos);
 
   const n = nombre.toLowerCase();
   const tipo = p.type || (p.properties ? "object" : "string");
@@ -56,14 +56,14 @@ function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = "", contexto
   if (tipo === "array") {
     if (prof > 2) return [];
     const n0 = Math.max(1, Math.min(p.minItems ?? 1, 3));
-    return Array.from({ length: n0 }, () => ejemploDe(nombre, p.items || { type: "string" }, prof + 1, padre, contexto));
+    return Array.from({ length: n0 }, () => ejemploDe(nombre, p.items || { type: "string" }, prof + 1, padre, contexto, hermanos));
   }
   if (tipo === "object") {
     if (prof > 2) return {};
     const out: Record<string, unknown> = {};
     // Los hijos heredan este nombre como `padre`: así `start` dentro de
     // `date_range` sale como fecha y no como "example".
-    for (const [k, v] of Object.entries(p.properties || {}).slice(0, 6)) out[k] = ejemploDe(k, v, prof + 1, nombre, contexto);
+    for (const [k, v] of Object.entries(p.properties || {}).slice(0, 6)) out[k] = ejemploDe(k, v, prof + 1, nombre, contexto, new Set(Object.keys(p.properties || {})));
     return out;
   }
   if (tipo === "boolean") return true;
@@ -71,8 +71,8 @@ function ejemploDe(nombre: string, p: JsonSchema, prof = 0, padre = "", contexto
 
   // Si el nombre propio no dice nada, se reintenta con el del objeto que lo
   // contiene antes de caer en el genérico.
-  let s = cadena(n, p, contexto);
-  if (s === GENERICO && padre) s = cadena(padre.toLowerCase(), p, contexto);
+  let s = cadena(n, p, contexto, hermanos);
+  if (s === GENERICO && padre) s = cadena(padre.toLowerCase(), p, contexto, hermanos);
   // El registro valida el ejemplo contra el propio esquema y rechaza el recurso
   // ENTERO si un solo campo se pasa de largo, así que se recorta como red.
   return p.maxLength !== undefined && s.length > p.maxLength ? s.slice(0, p.maxLength) : s;
@@ -98,20 +98,29 @@ function numero(n: string, p: JsonSchema): number {
 }
 
 /** Valor de ejemplo para una propiedad de texto, elegido por el nombre del campo. */
-function cadena(n: string, p: JsonSchema, contexto = ""): string {
-  if (n.includes("audio")) return "https://example.com/audio.mp3";
+function cadena(n: string, p: JsonSchema, contexto = "", hermanos = new Set<string>()): string {
+  // example.com/audio.mp3 no existe (404) y transcribe fallaba al descargarlo.
+  // Misma muestra con voz real que usa la consola.
+  if (n.includes("audio")) return "https://github.com/ggerganov/whisper.cpp/raw/master/samples/jfk.wav";
   if (p.format === "uri" || n.includes("url")) return "https://example.com";
-  // `from`/`to` son zonas horarias en time.convert pero códigos ISO 4217 en
-  // data.currency_convert, y ahí el esquema los limita a 3 caracteres. Sin mirar
-  // maxLength salía "Europe/Madrid" como divisa y el registro rechazaba el
-  // recurso entero ("String length must be less than or equal to 3").
-  if (p.maxLength !== undefined && p.maxLength <= 3) return n === "to" ? "EUR" : "USD";
   // Un selector CSS de ejemplo tiene que casar con algo: "example" no casa nada,
   // y era lo que se publicaba para web.scrape.
   if (n.includes("selector")) return "h1";
   if (n.includes("timezone") || n === "tz") return "Europe/Madrid";
-  if (n === "from") return "Europe/Madrid";
-  if (n === "to") return "America/New_York";
+  // `from`/`to` significan cosas distintas según el hermano que los acompañe:
+  // convert_units lleva `value` (km→mi), currency_convert lleva `amount`
+  // (USD→EUR, y ahí el esquema los limita a 3 caracteres) y la conversión
+  // horaria lleva `datetime`. Sin mirar el hermano, units-convert publicaba
+  // "Europe/Madrid" como unidad de origen y la llamada fallaba.
+  if (n === "from" || n === "to") {
+    if (hermanos.has("value")) return n === "from" ? "km" : "mi";
+    if (hermanos.has("amount") || (p.maxLength !== undefined && p.maxLength <= 3)) {
+      return n === "from" ? "USD" : "EUR";
+    }
+    return n === "from" ? "Europe/Madrid" : "America/New_York";
+  }
+  // Otros campos de 3 caracteres son códigos, no texto libre.
+  if (p.maxLength !== undefined && p.maxLength <= 3) return "USD";
   // Un rango con las dos fechas iguales es válido pero engañoso como ejemplo.
   if (n === "start") return "2026-12-25";
   if (n === "end") return "2026-12-31";
@@ -152,7 +161,7 @@ export function cuerpoEjemplo(js: JsonSchema, contexto = ""): Record<string, unk
     ? [...obligatorios, ...nombres.filter((n) => !req.has(n))].slice(0, Math.max(obligatorios.length, 2))
     : nombres.slice(0, 1);
   const out: Record<string, unknown> = {};
-  for (const n of elegidos) out[n] = ejemploDe(n, props[n], 0, "", contexto);
+  for (const n of elegidos) out[n] = ejemploDe(n, props[n], 0, "", contexto, new Set(nombres));
   return out;
 }
 
