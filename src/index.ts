@@ -185,6 +185,21 @@ app.get("/health", (c) => c.text(LANDING));
 app.get("/openapi.json", (c) => c.json(openapi()));
 app.get("/.well-known/openapi.json", (c) => c.json(openapi()));
 
+/**
+ * Prueba de propiedad del dominio para x402-list.com: su flujo de actualización
+ * de ficha da un token de un solo uso (caduca en 72 h) que hay que publicar
+ * aquí antes de pulsar «verify».
+ *
+ * Se sirve desde KV en vez de incrustarlo en el código para no tener que
+ * desplegar dentro de esa ventana de 72 h, y para no dejar un token muerto en
+ * un repositorio público:
+ *   wrangler kv key put x402list:token "<token>" --binding LINKS --remote
+ */
+app.get("/.well-known/x402list.txt", async (c) => {
+  const t = await c.env.LINKS?.get("x402list:token");
+  return t ? c.text(t) : c.text("no token published", 404);
+});
+
 // URL shortener redirect: /s/<code> → the original URL (link.shorten writes to KV).
 app.get("/s/:code", async (c) => {
   const target = await c.env.LINKS?.get(c.req.param("code"));
