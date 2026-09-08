@@ -149,8 +149,13 @@ export function openapi() {
         },
       },
     };
+    // Solo la ruta canónica. El alias /paid/<seg> sigue montado y cobrando para
+    // no romper a quien ya lo use, pero no se anuncia: el openapi es el contrato
+    // que leen los registros, y publicando ambas cada uno indexaba las 34 tools
+    // por duplicado (x402scan validaba 68 recursos en vez de 34). Es el mismo
+    // error que tenía la portada del API, que anunciaba /paid y así enseñó esa
+    // ruta a todo el ecosistema.
     paths[`/v1/${seg}`] = def;
-    paths[`/paid/${seg}`] = def;
   }
   return {
     openapi: "3.1.0",
