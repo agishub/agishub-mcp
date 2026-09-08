@@ -135,6 +135,13 @@ export function openapi() {
         "x-tool": operationId.split(".")[1],
         "x-category": catalog.category ?? null,
         "x-price": price,
+        // Formato que exige el registro de x402scan para clasificar la operación
+        // como de pago: importe decimal en USD (el reto x402 lo expresa en
+        // unidades atómicas, $0.01 => "10000") y protocolos declarados.
+        "x-payment-info": {
+          price: { mode: "fixed", currency: "USD", amount: price.replace("$", "") },
+          protocols: [{ x402: {} }],
+        },
         requestBody: { required: true, content: { "application/json": { schema } } },
         responses: {
           "200": { description: "Success." },
@@ -149,9 +156,14 @@ export function openapi() {
     openapi: "3.1.0",
     info: {
       title: "AgisHub",
-      version: "2.1.0",
+      version: "3.0.0",
+      // La descripción anterior hablaba solo del conversor de zonas horarias:
+      // era la del servicio original, y se quedó ahí mientras el catálogo
+      // crecía a 34 tools. Es lo que lee un agente al descubrir el API.
       description:
-        "Timezone converter, world clock, date math & meeting scheduler for AI agents. Pay-per-call x402 endpoints (USDC on Base).",
+        "Pay-per-call APIs for AI agents over x402 (USDC on Base). No API key and no signup: call an endpoint, get a 402 challenge, pay it, get the result. AI (chat, summarise, classify, entity and structured extraction, embeddings, transcription, text-to-speech, image generation), web (fetch as markdown, CSS scrape, link map, crawl, screenshot, snapshot, headless browser), documents (HTML to PDF), time and scheduling, live crypto prices, unit and currency conversion, agent memory, webhooks, QR codes and short links. Also free over MCP.",
+      "x-guidance":
+        "Every tool is exposed twice: free over MCP (POST /mcp, JSON-RPC) and paid over HTTP (POST /v1/<tool>, x402). Use the MCP channel to explore and the HTTP channel in production. To call a paid endpoint: POST the JSON body described by the operation's requestBody schema; an unpaid request returns HTTP 402 with a payment-required header carrying the x402 challenge (exact scheme, USDC on Base). Sign it and retry the same request with the payment header. Prices run from $0.01 to $0.10 per call and are stated per operation. The /paid/<tool> prefix is a legacy alias of /v1/<tool> kept for compatibility; prefer /v1.",
       contact: { name: "AgisHub — Support & Community", url: "https://github.com/agishub/agishub-mcp/discussions", email: "jmavid@gmail.com" },
     },
     externalDocs: { description: "Questions, bug reports & feature requests", url: "https://github.com/agishub/agishub-mcp/discussions" },
