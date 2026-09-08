@@ -23,6 +23,7 @@ import { httpOperations } from "./resolver";
 import { mountBackoffice } from "./private/backoffice";
 import { mountTry } from "./try";
 import { handleQueue } from "./webhook-consumer";
+import { refrescarRegistro } from "./refrescar-registro";
 import {
   shouldTrace, readBodyCapped, callerIp, callerWallet, channelFor, toolFor, writeTrace, clientNameFrom,
 } from "./traces";
@@ -168,7 +169,11 @@ Focused MCP endpoints:
 
 x402 pay-per-call HTTP (USDC on Base):
        ${httpOperations()
-  .map((e) => `${(e.catalog.pricing?.x402 ?? "").padEnd(7)} POST /paid/${e.seg}`)
+  // Ruta canónica /v1: esta portada es la puerta de entrada que leen los
+  // rastreadores, y anunciando /paid (el alias que este mismo código llama
+  // «legacy») el ecosistema entero aprendió esa ruta — incluido el registro de
+  // Coinbase, que indexa la URL que se paga. /paid sigue vivo como alias.
+  .map((e) => `${(e.catalog.pricing?.x402 ?? "").padEnd(7)} POST /v1/${e.seg}`)
   .join("\n       ")}
 Request features:  call the MCP tool 'request_feature' — ask for new services, improvements, or report bugs (free)
 Docs:  https://github.com/agishub/agishub-mcp  ·  /openapi.json
@@ -222,7 +227,7 @@ async function nonMcpHint(c: Context, svc: string): Promise<Response | null> {
   }
   if (!notSSE && !badInit) return null;
   const h = MCP_HTTP_HINT[svc];
-  const direct = h ? `POST ${BASE_URL}/paid/${h.seg}` : `${BASE_URL}/openapi.json`;
+  const direct = h ? `POST ${BASE_URL}/v1/${h.seg}` : `${BASE_URL}/openapi.json`;
   const why = notSSE
     ? "missing 'Accept: application/json, text/event-stream' header"
     : "'initialize' params must include protocolVersion, capabilities and clientInfo";
@@ -279,13 +284,22 @@ export default {
         try {
           // UA de health-probe → el middleware de trazas lo salta (ruido interno).
           await withTimeout(
-            env.SELF.fetch(`${BASE_URL}/paid/now-in`, {
+            env.SELF.fetch(`${BASE_URL}/v1/time-now`, {
               headers: { "user-agent": "agishub-healthcheck/1.0" },
             }),
             10000,
           );
         } catch {
           /* best-effort warm */
+        }
+        // Mantiene vivas las entradas del registro de Coinbase, que caducan a los
+        // 30 días sin liquidación. Paga como mucho un endpoint por ejecución y
+        // solo cuando toca; ver refrescar-registro.ts para las salvaguardas.
+        try {
+          const r = await refrescarRegistro(env, BASE_URL);
+          if (r !== "nada pendiente" && r !== "desactivado") console.log(`registro: ${r}`);
+        } catch (e) {
+          console.warn(`registro: ${e instanceof Error ? e.message : String(e)}`);
         }
       })(),
     );

@@ -23,7 +23,7 @@
 
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-type JsonSchema = {
+export type JsonSchema = {
   type?: string;
   properties?: Record<string, JsonSchema>;
   required?: string[];
@@ -140,7 +140,7 @@ function cadena(n: string, p: JsonSchema, contexto = ""): string {
  * agentes. Enseñar un parámetro opcional de más nunca estorba; enseñar una
  * llamada que falla, sí.
  */
-function cuerpoEjemplo(js: JsonSchema, contexto = ""): Record<string, unknown> {
+export function cuerpoEjemplo(js: JsonSchema, contexto = ""): Record<string, unknown> {
   const props = js.properties || {};
   const req = new Set(js.required || []);
   const nombres = Object.keys(props);
@@ -173,6 +173,11 @@ export interface ExtensionBazaar {
  * GET con cuerpo JSON: "body" para el POST cobrado, "query" para el GET (que
  * lee los mismos campos del query string, ver adapters/http.ts).
  */
+/** Cuerpo de ejemplo de una operación, a partir de su esquema zod. */
+export function ejemploDeOperacion(esquemaZod: unknown, descripcion: string): Record<string, unknown> {
+  return cuerpoEjemplo(zodToJsonSchema(esquemaZod as never, { target: "openApi3" }) as JsonSchema, descripcion);
+}
+
 export function extensionBazaar(
   esquemaZod: unknown,
   descripcion: string,
