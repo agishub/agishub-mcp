@@ -53,7 +53,12 @@ export class WebScraperMCP extends McpAgent {
   async init() {
     // `document` entra aquí porque su única tool, pdf, es renderizar una URL:
     // funcionalmente es web aunque el catálogo la agrupe por el formato de salida.
-    registerTools(this.server, this.env as Env, ["web", "document"]);
+    //
+    // soloPago: este servidor es el producto de scraping, y TODAS sus tools se
+    // cobran. Anuncia el catálogo completo con sus esquemas, pero la ejecución
+    // va por /v1/<tool>. El tramo gratuito vive en el hub /mcp, que mantiene la
+    // versión reducida de extract, scrape y links.
+    registerTools(this.server, this.env as Env, ["web", "document"], { soloPago: true });
   }
 }
 
@@ -166,7 +171,8 @@ const LANDING = `AgisHub — remote MCP servers + x402 APIs for AI agents
 
 Focused MCP endpoints:
   POST /mcp/timezone   timezone-toolkit — convert, world clock, offsets, date math, holidays, meeting slots
-  POST /mcp/web        web-scraper — fetch any URL as clean markdown
+  POST /mcp/web        web-scraper — 10 tools de web: markdown, selectores CSS, enlaces,
+                       crawl, mapa de URLs, captura, snapshot, PDF, navegador y extracción con IA (de pago)
   POST /mcp            combined hub (all tools)   ·   GET /sse (legacy)
 
 x402 pay-per-call HTTP (USDC on Base):

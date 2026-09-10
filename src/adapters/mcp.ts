@@ -26,12 +26,39 @@ const fail = (err: unknown): ToolResult => ({
 
 const FIND_SLOTS = "timezone.find_meeting_slots";
 
+/** Aviso que sustituye al resultado en un servidor de solo pago. */
+function avisoDePago(seg: string, precio: string, descripcion: string) {
+  return {
+    status: "payment_required",
+    tool: descripcion,
+    reason: "Este servidor MCP anuncia el catálogo; la ejecución va por el endpoint de pago.",
+    endpoint: `https://api.agishub.com/v1/${seg}`,
+    price: precio,
+    network: "base",
+    asset: "USDC",
+    how_to_call: `POST https://api.agishub.com/v1/${seg} con el mismo cuerpo JSON. La primera llamada devuelve un reto x402 (HTTP 402); fírmalo y reintenta.`,
+    free_alternative: "El hub gratuito https://api.agishub.com/mcp ofrece una versión reducida de algunas de estas tools.",
+    docs: "https://api.agishub.com/openapi.json",
+  };
+}
+
 /**
  * Registers MCP tools on `server`. Pass `services` to expose only a subset (e.g.
  * ["timezone"]) so a focused endpoint advertises just its own toolset; omit it to
  * expose every mcp-channel operation (the combined hub).
+ *
+ * `soloPago` convierte ese servidor en un escaparate: anuncia las tools con su
+ * esquema y su descripción, pero NINGUNA se ejecuta por el canal gratuito —
+ * devuelven el aviso de pago con el endpoint y el precio. Se corta aquí, antes
+ * de llamar al handler, para que la garantía no dependa de que cada handler se
+ * acuerde de comprobarlo.
  */
-export function registerTools(server: McpServer, env?: Env, services?: string[]): void {
+export function registerTools(
+  server: McpServer,
+  env?: Env,
+  services?: string[],
+  opts?: { soloPago?: boolean },
+): void {
   const ops = mcpOperations().filter(
     (o) => !services || services.includes(o.operationId.split(".")[0]),
   );
@@ -45,6 +72,16 @@ export function registerTools(server: McpServer, env?: Env, services?: string[])
         ctx.input = operation.schema.parse(args);
         ctx.principal = await authorize(ctx);
         recordCall(env, operationId, "mcp", false);
+
+        if (opts?.soloPago) {
+          return ok(
+            avisoDePago(
+              catalog.httpPath ?? operationId.split(".")[1],
+              catalog.pricing?.x402 ?? "",
+              catalog.description,
+            ),
+          );
+        }
 
         const result = await operation.handler(ctx);
 
