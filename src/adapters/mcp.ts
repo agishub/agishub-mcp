@@ -59,9 +59,23 @@ export function registerTools(
   services?: string[],
   opts?: { soloPago?: boolean },
 ): void {
-  const ops = mcpOperations().filter(
-    (o) => !services || services.includes(o.operationId.split(".")[0]),
-  );
+  const todas = mcpOperations();
+  const ops = todas.filter((o) => !services || services.includes(o.operationId.split(".")[0]));
+
+  // Un nombre de servicio que no existe no falla: el servidor arranca y sirve una
+  // lista vacía. Así estuvieron meses /mcp/timezone, /mcp/memory y /mcp/crypto,
+  // filtrando por namespaces anteriores a la migración de taxonomía. Se avisa
+  // fuerte para que el siguiente renombrado se note en los logs el mismo día.
+  if (services?.length) {
+    const existentes = new Set(todas.map((o) => o.operationId.split(".")[0]));
+    const fantasma = services.filter((x) => !existentes.has(x));
+    if (fantasma.length) {
+      console.error(
+        `registerTools: servicio(s) inexistente(s) ${fantasma.join(", ")} — ` +
+          `este servidor MCP servirá ${ops.length} tools. Servicios válidos: ${[...existentes].sort().join(", ")}`,
+      );
+    }
+  }
   for (const { name, operationId, operation, catalog } of ops) {
     server.tool(name, catalog.description, operation.schema.shape, async (args: unknown) => {
       try {

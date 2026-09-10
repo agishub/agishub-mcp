@@ -41,10 +41,16 @@ export class TimezoneToolkitMCP extends McpAgent {
 // registry entry (com.agishub/time, com.agishub/web-scraper) with a
 // distinct remote URL, which the official registry requires and which keeps each
 // listing keyword-focused for discovery.
+//
+// OJO: el filtro son nombres de servicio del catálogo, y un nombre que no existe
+// NO da error: el servidor arranca, hace el handshake y devuelve la lista de
+// tools vacía. Así estuvieron meses timezone (era "time"), rag ("memory") y
+// crypto ("market") tras la migración de taxonomía. Si se renombra un servicio
+// en catalog.ts, hay que mirar aquí — o comprobarlo con tools/list.
 export class TimezoneMCP extends McpAgent {
   server = new McpServer({ name: "time", version: "2.1.0" });
   async init() {
-    registerTools(this.server, this.env as Env, ["timezone"]);
+    registerTools(this.server, this.env as Env, ["time"]);
   }
 }
 
@@ -72,7 +78,7 @@ export class AiMCP extends McpAgent {
 export class MemoryMCP extends McpAgent {
   server = new McpServer({ name: "agent-memory", version: "2.1.0" });
   async init() {
-    registerTools(this.server, this.env as Env, ["rag"]);
+    registerTools(this.server, this.env as Env, ["memory"]);
   }
 }
 
@@ -86,7 +92,7 @@ export class WebhookMCP extends McpAgent {
 export class CryptoMCP extends McpAgent {
   server = new McpServer({ name: "crypto-prices", version: "2.1.0" });
   async init() {
-    registerTools(this.server, this.env as Env, ["crypto"]);
+    registerTools(this.server, this.env as Env, ["market"]);
   }
 }
 
