@@ -49,9 +49,11 @@ export class TimezoneMCP extends McpAgent {
 }
 
 export class WebScraperMCP extends McpAgent {
-  server = new McpServer({ name: "web-scraper", version: "2.1.0" });
+  server = new McpServer({ name: "web-scraper", version: "3.0.0" });
   async init() {
-    registerTools(this.server, this.env as Env, ["web"]);
+    // `document` entra aquí porque su única tool, pdf, es renderizar una URL:
+    // funcionalmente es web aunque el catálogo la agrupe por el formato de salida.
+    registerTools(this.server, this.env as Env, ["web", "document"]);
   }
 }
 

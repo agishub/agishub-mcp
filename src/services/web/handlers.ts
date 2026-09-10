@@ -10,6 +10,8 @@ import { extract as extractCore } from "./core/extract";
 import * as Q from "./core/quickactions";
 import * as S from "./schemas";
 import { freemiumNote } from "../_shared/freemium";
+import { avisoSiEsGratis } from "../_shared/solo-pago";
+import * as E from "./core/estatico";
 import { automate, type Step } from "../browser/core/run";
 import { mapCore } from "../crawl/core/map";
 import { crawlCore, getCrawlStatus } from "../crawl/core/crawl";
@@ -71,30 +73,56 @@ export async function extract(ctx: OperationContext<z.infer<typeof S.extract>>) 
 
 // ── Browser Rendering Quick Actions (published on the paid HTTP channel) ───────
 
-export function scrape(ctx: OperationContext<z.infer<typeof S.scrape>>) {
+// Gratis por MCP: los selectores se aplican al HTML de origen, sin navegador.
+// De pago: navegador real, así que se ve también lo que pinta el JavaScript.
+export async function scrape(
+  ctx: OperationContext<z.infer<typeof S.scrape>>,
+): Promise<Record<string, unknown>> {
+  if (ctx.transport === "mcp") return E.scrapeEstatico(ctx.input.url, ctx.input.selectors);
   return Q.scrape(ctx.input, ctx.env);
 }
 
-export function links(ctx: OperationContext<z.infer<typeof S.links>>) {
+// Mismo reparto: gratis los href del HTML, de pago los enlaces ya renderizados
+// (y el filtro `visible_only`, que necesita saber qué se ve en pantalla).
+export async function links(
+  ctx: OperationContext<z.infer<typeof S.links>>,
+): Promise<Record<string, unknown>> {
+  if (ctx.transport === "mcp") return E.linksEstatico(ctx.input.url, !!ctx.input.exclude_external);
   return Q.links(ctx.input, ctx.env);
 }
 
-export function structured(ctx: OperationContext<z.infer<typeof S.structured>>) {
+export async function structured(
+  ctx: OperationContext<z.infer<typeof S.structured>>,
+): Promise<Record<string, unknown>> {
+  const aviso = avisoSiEsGratis(ctx, "extract-structured", "Necesita un navegador y un modelo de IA.");
+  if (aviso) return aviso;
   return Q.structured(ctx.input, ctx.env);
 }
 
-export function snapshot(ctx: OperationContext<z.infer<typeof S.snapshot>>) {
+export async function snapshot(
+  ctx: OperationContext<z.infer<typeof S.snapshot>>,
+): Promise<Record<string, unknown>> {
+  const aviso = avisoSiEsGratis(ctx, "snapshot", "Necesita renderizar la página en un navegador real.");
+  if (aviso) return aviso;
   return Q.snapshot(ctx.input, ctx.env);
 }
 
 // ── Consolidated from browser, crawl, render ──────────────────────────────
 
-export function browser(ctx: OperationContext<z.infer<typeof S.automate>>) {
+export async function browser(
+  ctx: OperationContext<z.infer<typeof S.automate>>,
+): Promise<Record<string, unknown>> {
+  const aviso = avisoSiEsGratis(ctx, "browser-automate", "Conduce un navegador real paso a paso.");
+  if (aviso) return aviso;
   const { url, steps, screenshot } = ctx.input;
   return automate(ctx.env, url, (steps ?? []) as Step[], screenshot ?? false);
 }
 
-export async function map(ctx: OperationContext<z.infer<typeof S.map>>) {
+export async function map(
+  ctx: OperationContext<z.infer<typeof S.map>>,
+): Promise<Record<string, unknown>> {
+  const aviso = avisoSiEsGratis(ctx, "crawl-map", "Recorre el sitio con un navegador para descubrir sus URLs.");
+  if (aviso) return aviso;
   const { url, limit = 100, include_subdomains = false, search } = ctx.input;
 
   const result = await mapCore(
@@ -116,7 +144,11 @@ export async function map(ctx: OperationContext<z.infer<typeof S.map>>) {
   };
 }
 
-export async function crawl(ctx: OperationContext<z.infer<typeof S.crawl>>) {
+export async function crawl(
+  ctx: OperationContext<z.infer<typeof S.crawl>>,
+): Promise<Record<string, unknown>> {
+  const aviso = avisoSiEsGratis(ctx, "crawl", "Lanza un rastreo asíncrono que abre muchas páginas en un navegador.");
+  if (aviso) return aviso;
   const { url, limit = 100, max_depth = 2, formats = ["markdown"], same_domain = true } = ctx.input;
 
   const jobId = await crawlCore(
@@ -140,7 +172,11 @@ export async function crawl(ctx: OperationContext<z.infer<typeof S.crawl>>) {
   };
 }
 
-export function screenshot(ctx: OperationContext<z.infer<typeof S.screenshot>>) {
+export async function screenshot(
+  ctx: OperationContext<z.infer<typeof S.screenshot>>,
+): Promise<Record<string, unknown>> {
+  const aviso = avisoSiEsGratis(ctx, "screenshot", "Necesita renderizar la página en un navegador real.");
+  if (aviso) return aviso;
   return B.screenshot(ctx.input, ctx.env);
 }
 

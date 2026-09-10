@@ -130,7 +130,7 @@ export const catalog: Catalog = {
         "Fetch any public web page and return its main content as clean, token-efficient Markdown (title, description, headings, links, lists). Set render:true to execute JavaScript first for single-page apps or JS-heavy pages that would otherwise come back empty. Built for RAG and for agents that need to read the contents of a URL.",
     },
     scrape: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.03" },
       visibility: "public",
       httpPath: "scrape",
@@ -142,7 +142,7 @@ export const catalog: Catalog = {
         "Extract specific elements from a JavaScript-rendered page by CSS selector. Give a list of selectors (e.g. 'h1', '.price', 'a.product') and get back the text and attributes of every match. Backed by a headless browser, so it works on SPAs and JS-heavy pages.",
     },
     links: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.03" },
       visibility: "public",
       httpPath: "links",
@@ -154,7 +154,7 @@ export const catalog: Catalog = {
         "Return every hyperlink on a JavaScript-rendered page as a list of absolute URLs, with options to keep only visible links or only same-site links. Backed by a headless browser. Use it to map a site or seed a crawler.",
     },
     extract_structured: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "extract-structured",
@@ -166,7 +166,7 @@ export const catalog: Catalog = {
         "AI-powered structured extraction: give a URL plus a natural-language prompt and/or a JSON Schema, and get back clean structured JSON (e.g. product name, price, rating). Renders the page in a headless browser first, so it works on SPAs.",
     },
     snapshot: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "snapshot",
@@ -178,7 +178,7 @@ export const catalog: Catalog = {
         "Capture several representations of a page in one call — rendered HTML plus a PNG screenshot by default, and optionally Markdown and the accessibility tree. Backed by a headless browser. Saves round-trips when an agent needs both the content and a visual of a page.",
     },
     browser: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.10" },
       visibility: "public",
       httpPath: "browser-automate",
@@ -190,7 +190,7 @@ export const catalog: Catalog = {
         "Drive a headless browser: open a URL and run an ordered list of steps — click, type, press keys, wait, extract text and screenshot. For flows the plain scraper can't reach (logins, forms, multi-step pages).",
     },
     map: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "crawl-map",
@@ -202,7 +202,7 @@ export const catalog: Catalog = {
         "Discover all URLs reachable from a domain within a link depth limit. Returns a flat list of absolute URLs, respects robots.txt crawl delays. Use it to map a site's structure before crawling.",
     },
     crawl: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.10" },
       visibility: "public",
       httpPath: "crawl",
@@ -214,7 +214,7 @@ export const catalog: Catalog = {
         "Crawl multiple pages of a site, respecting link depth and domain limits. Returns async job_id; results include markdown or HTML per page. Use it to fetch and process many pages of content at once.",
     },
     screenshot: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.03" },
       visibility: "public",
       httpPath: "screenshot",
@@ -409,7 +409,7 @@ export const catalog: Catalog = {
 
   document: {
     pdf: {
-      channels: ["http"],
+      channels: ["mcp", "http"],
       pricing: { x402: "$0.05" },
       visibility: "public",
       httpPath: "pdf",
