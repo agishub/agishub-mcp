@@ -137,6 +137,11 @@ function cadena(n: string, p: JsonSchema, contexto = "", hermanos = new Set<stri
     return /timezone|time zone/i.test(contexto) ? "Madrid" : "What is the x402 protocol?";
   }
   if (n.includes("text") || n.includes("content")) return "AgisHub sells agent capabilities per call.";
+  // Detectados al barrer los 34 con la comprobación nueva de Validar: eran los
+  // tres últimos campos que se publicaban con el valor genérico.
+  if (n === "system" || n.includes("system_prompt")) return "You are a concise assistant.";
+  if (n.includes("payload")) return '{"event":"demo","ok":true}';
+  if (n.includes("job_id") || n === "id") return "job_01HZX3K2QW";
   // Último recurso antes del genérico: lo que el propio esquema dice del campo.
   // `time.offset` tiene un campo llamado `instant`, que no casa con ninguna regla
   // por nombre, así que se publicaba como "example" y el endpoint devolvía 400 al
